@@ -12,9 +12,21 @@
 		Label,
 		SelectMenu,
 		IconButton,
+		Checkbox,
+		Disclosure,
+		DisclosureItem,
+		OnboardingTip,
+		Switch,
+		Section,
 	} from "figma-plugin-ds-svelte";
 
-	import { Icon, IconVisible } from "figma-plugin-ds-svelte";
+	import {
+		Icon,
+		IconVisible,
+		IconSpinner,
+		IconStyles,
+		IconBlend,
+	} from "figma-plugin-ds-svelte";
 	import FileList from "./components/FileList.svelte";
 
 	//menu items, this is an array of objects to populate to our select menus
@@ -29,6 +41,13 @@
 		{ value: "circle", label: "Circle", group: null, selected: false },
 	];
 
+	import { fileList } from "./stores.js";
+	import { debug } from "svelte/internal";
+
+	let _files;
+	fileList.subscribe((value) => {
+		_files = value;
+	});
 	var disabled = true;
 	var selectedShape;
 	var count = 5;
@@ -52,12 +71,26 @@
 	function cancel() {
 		parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
 	}
+
+	var switchValue;
+
+	//Submit button for webkit dir
+	function handleSubmit() {
+		// console.log(filesArray);
+		parent.postMessage(
+			{ pluginMessage: { type: "create-library", doc: _files } },
+			"*"
+		);
+	}
 </script>
 
 <div class="wrapper p-xxsmall">
-	<FileInput />
+	<FileInput class="p-huge" />
+	<Section class="mt-huge">File List</Section>
 	<FileList />
+	<Button on:click={handleSubmit} class="mt-small">Submit</Button>
 
+	<Switch value="value" bind:checked={switchValue}>Label</Switch>
 	<!-- 
 	<IconButton on:click={createShapes} iconName={IconVisible} />
 
@@ -71,7 +104,9 @@
 		<Button on:click={cancel} variant="secondary" class="mr-xsmall"
 			>Cancel</Button
 		>
-		<Button on:click={createShapes} bind:disabled>Create shapes</Button>
+		<Button on:click={createShapes} class="mb-huge" bind:disabled
+			>Create shapes</Button
+		>
 	</div> -->
 </div>
 

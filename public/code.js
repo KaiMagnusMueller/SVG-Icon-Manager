@@ -8,34 +8,78 @@
 console.clear();
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, { width: 320, height: 400 });
+const nodes = figma.currentPage.findAllWithCriteria({
+    types: ['COMPONENT']
+});
+let existingIcons = [];
+let existingNodes = [];
+if (nodes.length !== 0) {
+    nodes.forEach(node => {
+        const data = node.getPluginData("importedIcon");
+        if (!data) {
+            return;
+        }
+        let obj = JSON.parse(data);
+        //delete all changed status from elements
+        obj.status = "";
+        existingIcons.push(obj);
+        existingNodes.push(node);
+    });
+}
+if (existingIcons.length !== 0) {
+    figma.ui.postMessage({ type: "loaded-nodes", data: existingIcons });
+}
+else {
+    figma.ui.postMessage({ type: "loaded-nodes-empty" });
+}
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 figma.ui.onmessage = msg => {
     // One way of distinguishing between different types of messages sent from
     // your HTML page is to use an object with a "type" property like this.
-    if (msg.type === 'create-shapes') {
-        const nodes = [];
-        for (let i = 0; i < msg.count; i++) {
-            var shape;
-            if (msg.shape === 'rectangle') {
-                shape = figma.createRectangle();
+    if (msg.type === 'create-library') {
+        // console.log(msg.doc);
+        let row = 0;
+        let column = 0;
+        const columnCount = 50;
+        msg.doc.forEach((element, i) => {
+            if (element.status == "added" && existingNodes.length > 0) {
+                console.log(element);
+                let node = figma.getNodeById(existingNodes[i].id);
+                console.log(node);
             }
-            else if (msg.shape === 'triangle') {
-                shape = figma.createPolygon();
+            const svg = figma.createNodeFromSvg(element.svg);
+            svg.name = "svg";
+            // svg.x = 0 + 64 * column
+            // svg.y = 400 + row * 80
+            const pluginData = element;
+            const component = figma.createComponent();
+            component.resizeWithoutConstraints(svg.width, svg.height);
+            component.x = 0 + 64 * column;
+            component.y = 400 + row * 80;
+            let name;
+            if (element.folder.length != 0) {
+                name = element.name + " / " + element.folder[0];
             }
             else {
-                shape = figma.createEllipse();
+                name = element.name;
             }
-            shape.x = i * 150;
-            shape.fills = [{ type: 'SOLID', color: { r: 1, g: 0.5, b: 0 } }];
-            figma.currentPage.appendChild(shape);
-            nodes.push(shape);
-        }
-        figma.currentPage.selection = nodes;
-        figma.viewport.scrollAndZoomIntoView(nodes);
+            // if (element.status == "added") {
+            //   createNewIconMarker(component)
+            // }
+            // "#008000"
+            component.name = name;
+            pluginData.id = component.id;
+            component.setPluginData("importedIcon", JSON.stringify(pluginData));
+            component.appendChild(svg);
+            if (i % columnCount == columnCount - 1) {
+                row++;
+            }
+            column = (i + 1) % columnCount;
+        });
     }
     // Make sure to close the plugin when you're done. Otherwise the plugin will
     // keep running, which shows the cancel button at the bottom of the screen.
-    figma.closePlugin();
+    // figma.closePlugin();
 };
