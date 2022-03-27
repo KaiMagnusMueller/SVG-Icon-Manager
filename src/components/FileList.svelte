@@ -1,9 +1,9 @@
 <script>
     import { fileList } from "../stores.js";
+    import FileListPreview from "./FileListPreview.svelte";
 
-    let _files = $fileList;
+    let _files = [];
 
-    $: $fileList;
     // $: $fileList && getFileContent();
 
     // function getFileContent() {
@@ -28,30 +28,23 @@
 
     fileList.subscribe((value) => {
         _files = value;
-    }); // logs '0'
+    });
 </script>
 
 <ul>
     {#if _files}
         {#each _files as file}
-            <li>
-                {file.name}
-                <!-- {#await promise then value}
-                    <p>the value is {value}</p>
-                {/await} -->
-
-                <!-- TODO: File list previwe component -->
-            </li>
+            <FileListPreview {file} />
         {/each}
     {/if}
 </ul>
 
 <style>
-    li {
-        font-family: var(--font-stack);
-        font-size: var(--font-size-xsmall);
-        font-weight: var(--font-weight-medium);
-        letter-spacing: var(--font-letter-spacing-neg-small);
-        line-height: var(--font-line-height);
+    ul {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-gap: 10px;
+        /* margin: 0; */
+        padding: 0;
     }
 </style>

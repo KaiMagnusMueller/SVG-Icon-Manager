@@ -41,6 +41,23 @@
 		{ value: "circle", label: "Circle", group: null, selected: false },
 	];
 
+	let menuItemArray = [
+		{
+			value: "item1",
+			label: "Carbon Design System",
+			group: null,
+			selected: false,
+		},
+		{
+			value: "item2",
+			label: "Add Configuration ",
+			group: null,
+			selected: false,
+		},
+	];
+
+	var selectedItem;
+
 	import { fileList } from "./stores.js";
 	import { debug } from "svelte/internal";
 
@@ -92,6 +109,14 @@
 
 	<Switch value="value" bind:checked={switchValue}>Label</Switch>
 	<!-- 
+	<SelectMenu
+		class="custom-menu"
+		bind:menuItems={menuItemArray}
+		bind:value={selectedItem}
+		showGroupLabels
+	/> -->
+
+	<!-- 
 	<IconButton on:click={createShapes} iconName={IconVisible} />
 
 	<Label>Shape</Label>
@@ -111,5 +136,14 @@
 </div>
 
 <style>
+	.custom-menu button {
+		height: 40px !important;
+	}
+
+	.custom-menu * .label,
+	.custom-menu * .placeholder {
+		font-size: var(--font-size-small) !important;
+	}
+
 	/* Add additional global or scoped styles here */
 </style>
