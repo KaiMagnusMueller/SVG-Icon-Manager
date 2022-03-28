@@ -13,7 +13,7 @@
 
 <li class={file.status} {title}>
     <div bind:this={container} />
-    <p>{file.name}</p>
+    <!-- <p>{file.name}</p> -->
 </li>
 
 <style>
@@ -33,12 +33,16 @@
         background-color: rgb(228, 228, 228);
     }
 
+    li:focus {
+        background-color: rgb(228, 228, 228);
+    }
+
     li div {
         aspect-ratio: 1/1;
         padding: 4px;
     }
 
-    div svg {
+    div :global(svg) {
         aspect-ratio: 1;
     }
 

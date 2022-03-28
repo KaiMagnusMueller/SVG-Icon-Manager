@@ -4,7 +4,7 @@
 	import { GlobalCSS, Button } from "figma-plugin-ds-svelte";
 
 	import { onMount } from "svelte";
-	import { fileList } from "../stores.js";
+	import { fileList, rootFolder } from "../stores.js";
 
 	import { cyrb53, getPathData, getIconSize, parseDOM } from "../svg-helpers";
 
@@ -20,7 +20,7 @@
 	let differences;
 
 	onmessage = (event) => {
-		console.log("got this from the plugin code", event.data.pluginMessage);
+		// console.log("got this from the plugin code", event.data.pluginMessage);
 
 		if (event.data.pluginMessage.type == "loaded-nodes") {
 			figmaNodes = event.data.pluginMessage.data;
@@ -46,7 +46,11 @@
 		return fileArray;
 	}
 
-	let iconArray = [];
+	let localArray = [];
+
+	function printEvent(event) {
+		$rootFolder = event.target.files[0].webkitRelativePath.split("/")[0];
+	}
 
 	function updateFileList(e) {
 		const cleanedFiles = cleanFiles(e);
@@ -64,7 +68,7 @@
 				const svgDoc = parseDOM(fileContent);
 				const svgSize = getIconSize(svgDoc);
 
-				iconArray.push({
+				localArray.push({
 					name: fileName,
 					svg: fileContent,
 					dimensions: svgSize,
@@ -74,111 +78,47 @@
 				});
 
 				if (i == cleanedFiles.length - 1) {
-					$fileList = iconArray;
+					differences = detectDifferences(figmaNodes, localArray);
+					console.log(differences);
+
+					//TODO: add status in detectDifferences function instead of here
+					if (differences) {
+						Object.keys(differences).forEach((keyName) => {
+							const diffType = differences[keyName];
+							// console.log(keyName);
+
+							diffType.forEach((element) => {
+								if (keyName == "deleted") {
+									//add element from difference array to flesArray if it was deleted (to restore it)
+									localArray.push(element);
+								}
+
+								//handle changed element
+								let modifiedItem = localArray.find(
+									(i) => i.hash === element.hash
+								);
+
+								//change status of element, modifiedItem is the element in files array
+								modifiedItem.status = keyName;
+							});
+						});
+					} else {
+						//if there are no figma nodes, differences is null, mark all as added
+						localArray.forEach((element) => {
+							element.status = "added";
+						});
+					}
+
+					localArray.sort(function (a, b) {
+						return a.name
+							.toLowerCase()
+							.localeCompare(b.name.toLowerCase());
+					});
+
+					$fileList = localArray;
 				}
 			});
 		});
-
-		// Object.keys(_files).forEach((i) => {
-		// 	const file = _files[i];
-
-		// 	// console.log(svgSize);
-		// 	// console.log(getIconSize(file));
-
-		// 	getSvgString(file).then((result) => {
-		// 		const name = file.name.split(".")[0];
-
-		// 		let svgString = result;
-		// 		// console.log(result)
-		// 		// console.log(filesArray[i]);
-
-		// 		const svgDoc = parseDOM(svgString);
-		// 		const svgSize = getIconSize(svgDoc);
-
-		// 		const svgHash = cyrb53(svgString);
-
-		// 		const fileDirectory = getPathData(file);
-
-		// 		_filesArray.push({
-		// 			name: name,
-		// 			svg: svgString,
-		// 			dimensions: svgSize,
-		// 			hash: svgHash,
-		// 			folder: fileDirectory,
-		// 			status: "",
-		// 		});
-
-		// 		/*
-		//     status:
-		//       - no change
-		//         same hash
-		//       - deleted
-		//         hash & name don't exist in selected files
-		//         hash & name exist only in Figma
-		//       - added
-		//         hash & name don't exist in figma
-		//         hash & name only exist in selected files
-		//       - changed
-		//         name exists in figma & selected files, but hash changed
-		//         all other properties need to be the same as well
-		// 		*/
-
-		// 		if (i == _files.length - 1) {
-		// 			// console.log("loaded svg files");
-		// 			// console.log(_filesArray);
-		// 			// console.log(figmaNodes[0]);
-
-		// 			// console.log("figma nodes");
-		// 			// console.log(figmaNodes);
-		// 			// console.log("selected files");
-		// 			// console.log(_filesArray);
-
-		// 			differences = detectDifferences(figmaNodes, _filesArray);
-		// 			console.log(differences);
-
-		// 			//TODO: add status in detectDifferences function instead of here
-		// 			if (differences) {
-		// 				Object.keys(differences).forEach((keyName) => {
-		// 					const diffType = differences[keyName];
-		// 					// console.log(keyName);
-
-		// 					diffType.forEach((element) => {
-		// 						if (keyName == "deleted") {
-		// 							//add element from difference array to flesArray if it was deleted (to restore it)
-		// 							_filesArray.push(element);
-
-		// 							figmaNodes2;
-		// 						}
-
-		// 						//handle changed element
-		// 						let modifiedItem = _filesArray.find(
-		// 							(i) => i.hash === element.hash
-		// 						);
-
-		// 						//change status of element, modifiedItem is the element in files array
-		// 						modifiedItem.status = keyName;
-
-		// 						// console.log(_filesArray);
-
-		// 						// console.log(keyName);
-		// 					});
-		// 				});
-		// 			} else {
-		// 				//if there are no figma nodes, differences is null, mark all as added
-		// 				_filesArray.forEach((element) => {
-		// 					element.status = "added";
-		// 				});
-		// 			}
-
-		// 			_filesArray.sort(function (a, b) {
-		// 				return a.name
-		// 					.toLowerCase()
-		// 					.localeCompare(b.name.toLowerCase());
-		// 			});
-
-		// 		}
-		// 	});
-		// });
 	}
 
 	async function getSvgString(file) {
@@ -196,11 +136,6 @@
 			console.info("no imported icons exist in Figma");
 			return null;
 		}
-
-		// console.log("figma nodes");
-		// console.log(_figmaNodes);
-		// console.log("selected files");
-		// console.log(_selectedfiles);
 
 		const figmaHash = _figmaNodes.map((a) => a.hash);
 		const filesHash = _selectedFiles.map((a) => a.hash);
@@ -222,8 +157,8 @@
 			[...filesHashSet].filter((x) => !figmaHashSet.has(x))
 		);
 
-		console.log(hashesOnlyInFigma);
-		console.log(hashesOnlyInFiles);
+		// console.log(hashesOnlyInFigma);
+		// console.log(hashesOnlyInFiles);
 
 		let changedItems = {
 			added: [],
@@ -317,7 +252,7 @@
 			}
 		});
 
-		for (prop in changedItems) {
+		for (const prop in changedItems) {
 			console.log(`${changedItems[prop].length} item(s) ${prop}`);
 		}
 
@@ -359,6 +294,7 @@
 	id="fileInput"
 	bind:files
 	on:change={updateFileList(files)}
+	on:change={printEvent}
 	webkitdirectory
 />
 

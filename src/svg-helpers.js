@@ -1,4 +1,4 @@
-import { systemPresets, activePreset } from "./stores.js";
+import { systemPresets, activePreset, rootFolder } from "./stores.js";
 
 //parse document from string
 export function parseDOM(_string) {
@@ -17,7 +17,13 @@ let _activePreset
 
 activePreset.subscribe((value) => {
     _activePreset = value;
-}); // logs '0'
+});
+
+let _rootFolder
+
+rootFolder.subscribe((value) => {
+    _rootFolder = value;
+});
 
 //return folder array
 export function getPathData(_file) {
@@ -30,8 +36,10 @@ export function getPathData(_file) {
     const dirStructure = [];
 
     //move up to the root folder defined in the preset
+    //if (element != systemPresets[_activePreset].preset.root_folder) {
+
     reversedFullPathComponents.forEach((element) => {
-        if (element != systemPresets[_activePreset].preset.root_folder) {
+        if (element != _rootFolder) {
             dirStructure.push(element);
         }
     });
