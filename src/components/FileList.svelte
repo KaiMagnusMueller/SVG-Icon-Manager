@@ -1,8 +1,10 @@
 <script>
     import { fileList } from "../stores.js";
     import FileListPreview from "./FileListPreview.svelte";
+    import FileInput from "./FileInput.svelte";
+    import { Label } from "figma-plugin-ds-svelte";
 
-    let _files = [];
+    export let _files = [];
 
     // $: $fileList && getFileContent();
 
@@ -31,13 +33,13 @@
     });
 </script>
 
-<ul>
-    {#if _files}
-        {#each _files as file}
+{#if _files.length > 0}
+    <ul>
+        {#each _files as file (file)}
             <FileListPreview {file} />
         {/each}
-    {/if}
-</ul>
+    </ul>
+{/if}
 
 <style>
     ul {
@@ -46,5 +48,6 @@
         grid-gap: 10px;
         /* margin: 0; */
         padding: 0;
+        align-self: normal;
     }
 </style>

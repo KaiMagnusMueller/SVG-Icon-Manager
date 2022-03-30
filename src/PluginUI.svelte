@@ -101,38 +101,21 @@
 	}
 </script>
 
-<div class="wrapper p-xxsmall">
-	<FileInput class="p-huge" />
-	<Section class="mt-huge">File List</Section>
-	<FileList />
-	<Button on:click={handleSubmit} class="mt-small">Submit</Button>
-
-	<Switch value="value" bind:checked={switchValue}>Label</Switch>
-	<!-- 
-	<SelectMenu
-		class="custom-menu"
-		bind:menuItems={menuItemArray}
-		bind:value={selectedItem}
-		showGroupLabels
-	/> -->
-
-	<!-- 
-	<IconButton on:click={createShapes} iconName={IconVisible} />
-
-	<Label>Shape</Label>
-	<SelectMenu bind:menuItems bind:value={selectedShape} class="mb-xxsmall" />
-
-	<Label>Count</Label>
-	<Input iconText="#" bind:value={count} class="mb-xxsmall" />
-
-	<div class="flex p-xxsmall mb-xsmall">
-		<Button on:click={cancel} variant="secondary" class="mr-xsmall"
-			>Cancel</Button
-		>
-		<Button on:click={createShapes} class="mb-huge" bind:disabled
-			>Create shapes</Button
-		>
-	</div> -->
+<div class="wrapper p-xxsmall" class:height-full={_files.length === 0}>
+	{#if _files.length === 0}
+		<div class="placeholder">
+			<FileInput />
+			<Label class="placeholder-label mt-xxsmall"
+				>No existing icons found. Import icons into this file by
+				selecting a source folder</Label
+			>
+		</div>
+	{:else if _files.length > 0}
+		<FileInput />
+		<Section class="mt-huge">File List</Section>
+		<FileList />
+		<Button on:click={handleSubmit} class="mt-small">Submit</Button>
+	{/if}
 </div>
 
 <style>
@@ -145,5 +128,28 @@
 		font-size: var(--font-size-small) !important;
 	}
 
-	/* Add additional global or scoped styles here */
+	.wrapper {
+		display: flex;
+		flex-direction: column;
+		align-items: baseline;
+	}
+
+	.height-full {
+		height: 100%;
+	}
+
+	.placeholder {
+		flex: 2;
+		display: flex;
+		align-self: center;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	:global(.placeholder-label) {
+		text-align: center;
+		width: 80% !important;
+		line-height: var(--font-line-height) !important;
+	}
 </style>

@@ -5,7 +5,7 @@
 
     const svgElem = parseDOM(file.svg).firstChild;
     let container;
-    let title = file.name + " " + file.folder + " " + file.status;
+    $: title = file.name + " " + file.folder + " " + file.status;
     onMount(() => {
         container.appendChild(svgElem);
     });

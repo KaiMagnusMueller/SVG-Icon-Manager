@@ -13,7 +13,7 @@
 		filePicker = document.getElementById("fileInput");
 	});
 
-	let figmaNodes;
+	let figmaNodes = [];
 	let _filesArray = [];
 	let files;
 
@@ -24,8 +24,13 @@
 
 		if (event.data.pluginMessage.type == "loaded-nodes") {
 			figmaNodes = event.data.pluginMessage.data;
-			// console.log("got existing icons from Figma");
-			// console.log(figmaNodes);
+			console.log("got existing icons from Figma");
+
+			figmaNodes.sort(function (a, b) {
+				return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+			});
+
+			$fileList = figmaNodes;
 
 			// handeLoadedNodes(event.data.pluginMessage.data)
 		} else if (event.data.pluginMessage.type == "loaded-nodes-empty") {
@@ -55,9 +60,6 @@
 	function updateFileList(e) {
 		const cleanedFiles = cleanFiles(e);
 
-		let results = [];
-		let expecting = cleanedFiles.length;
-
 		cleanedFiles.forEach((element, i) => {
 			getSvgString(element).then((result) => {
 				const fileName = element.name.split(".")[0];
@@ -78,19 +80,20 @@
 				});
 
 				if (i == cleanedFiles.length - 1) {
-					differences = detectDifferences(figmaNodes, localArray);
+					differences = detectDifferences($fileList, localArray);
 					console.log(differences);
 
 					//TODO: add status in detectDifferences function instead of here
 					if (differences) {
 						Object.keys(differences).forEach((keyName) => {
-							const diffType = differences[keyName];
+							const diffTypeArray = differences[keyName];
 							// console.log(keyName);
 
-							diffType.forEach((element) => {
+							diffTypeArray.forEach((element) => {
 								if (keyName == "deleted") {
 									//add element from difference array to flesArray if it was deleted (to restore it)
 									localArray.push(element);
+									// console.log(element);
 								}
 
 								//handle changed element
@@ -98,8 +101,11 @@
 									(i) => i.hash === element.hash
 								);
 
+								// console.log(modifiedItem);
+
 								//change status of element, modifiedItem is the element in files array
 								modifiedItem.status = keyName;
+								// console.log(modifiedItem);
 							});
 						});
 					} else {
@@ -194,8 +200,8 @@
 					o.folder[0] === changedFolder[0]
 			);
 
-			// console.log(objInFigma.folder);
-			// console.log(objInFiles.folder);
+			// console.log(objInFigma);
+			// console.log(objInFiles);
 
 			if (objInFiles) {
 				console.log(
@@ -203,7 +209,6 @@
 				);
 
 				//add existing id to object
-				console.log(objInFigma);
 				objInFiles.id = objInFigma.id;
 
 				changedItems.changed.push(objInFiles);
