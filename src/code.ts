@@ -60,63 +60,264 @@ figma.ui.onmessage = msg => {
 
 		const columnCount = 50
 
+
+		let carryDelta = 0
+
+		let changeLog = {
+			added: [],
+			updated: []
+		}
+
+
 		msg.doc.forEach((element, i) => {
 
 
 
-			if (element.status == "added" && existingNodes.length > 0) {
-				console.log(element);
-
-				let node = figma.getNodeById(existingNodes[i].id)
-
-				console.log(node);
-
-			}
+			// if (carryDelta != 0) {
 
 
+			row = Math.floor((i) / columnCount)
+			column = (i) % columnCount
 
-			const svg = figma.createNodeFromSvg(element.svg)
-			svg.name = "svg"
-			// svg.x = 0 + 64 * column
-			// svg.y = 400 + row * 80
+			let targetRow = Math.floor((i + carryDelta) / columnCount)
+			let targetColumn = (i + carryDelta) % columnCount
 
-			const pluginData = element
+			// console.log("--------------");
+			// // console.log(`Current offset: ${carryDelta}`);
 
+			// console.log(`Row: ${row}, Column: ${column}`);
 
+			let targetCoords = getCoords(targetRow, targetColumn)
 
+			// let currentCoords
+			// if (existingNodes[i]) {
+			// 	currentCoords = [existingNodes[i].x, existingNodes[i].y]
 
-			const component = figma.createComponent()
-			component.resizeWithoutConstraints(svg.width, svg.height)
+			// 	console.log(`Move ${element.status == "" ? "existing" : element.status} node ${existingNodes[i].name} by ${carryDelta} step(s) from ${currentCoords} to ${targetCoords}`);
 
-			component.x = 0 + 64 * column
-			component.y = 400 + row * 80
-
-			let name
-			if (element.folder.length != 0) {
-				name = element.name + " / " + element.folder[0]
-			} else {
-				name = element.name
-			}
-
-			// if (element.status == "added") {
-			//   createNewIconMarker(component)
 			// }
 
-			// "#008000"
+			let currentHash = element.hash
 
-			component.name = name
+			let foundIndex = existingIcons.findIndex((e) => e.hash == currentHash)
 
-			pluginData.id = component.id
+			// console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
 
-			component.setPluginData("importedIcon", JSON.stringify(pluginData))
-			component.appendChild(svg)
 
-			if (i % columnCount == columnCount - 1) {
-				row++
+
+			// let currentFigmaNode = 
+
+			if (element.status === "added") {
+
+
+				const svg = figma.createNodeFromSvg(element.svg)
+				svg.name = "svg"
+
+				const pluginData = element
+
+
+				const component = figma.createComponent()
+				component.resizeWithoutConstraints(svg.width, svg.height)
+
+				let coords = getCoords(row, column)
+				// console.log(`Create node at ${coords.x},${coords.y}`);
+
+				component.x = coords.x
+				component.y = coords.y
+
+				let name
+				if (element.folder.length != 0) {
+					name = element.name + " / " + element.folder[0]
+				} else {
+					name = element.name
+				}
+
+				// if (element.status == "added") {
+				//   createNewIconMarker(component)
+				// }
+
+				// "#008000"
+
+				component.name = name
+
+				pluginData.id = component.id
+
+				component.setPluginData("importedIcon", JSON.stringify(pluginData))
+				component.appendChild(svg)
+
+				carryDelta++
+				// console.log("add one");
+
+				changeLog.added.push(element)
+			} else {
+
+				//if an icon wasn't added, it is either unchanged, changed or deleted
+
+				// console.log(element);
+
+
+				let changedNode = figma.getNodeById(element.id)
+
+
+				if (carryDelta != 0 && changedNode) {
+					// console.log("--------------");
+					// console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
+
+					// console.log(`Current offset: ${carryDelta}`);
+
+					// console.log(`Row: ${row} => ${targetRow}, Column: ${column} => ${targetColumn}`);
+					let coords = getCoords(row, column)
+
+					// console.log(changedNode);
+					// console.log(`moveNode from ${changedNode.x},${changedNode.y} to ${coords.x},${coords.y}`);
+					// console.log(`moveNode by ${coords.x - changedNode.x}`);
+
+					changedNode.x = coords.x
+					changedNode.y = coords.y
+
+
+				} else {
+					// console.log(element);
+
+					// console.log("Node didn't need to be moved");
+				}
+
+				// console.log(changedNode);
+				// console.log("update pluginData");
+
 			}
 
-			column = (i + 1) % columnCount
+
+			if (element.status === "changed") {
+
+				//TODO: Mark node that has changed its size to warn the user
+
+
+				let changedNode = figma.getNodeById(element.id)
+
+				const svg = figma.createNodeFromSvg(element.svg)
+				svg.name = "svg"
+
+				const children = changedNode.children
+
+
+				console.log("Changed Node");
+				console.log(children);
+
+
+				children.forEach(element => {
+					element.remove()
+				});
+
+				changedNode.resizeWithoutConstraints(svg.width, svg.height)
+
+
+				const pluginData = element
+				changedNode.setPluginData("importedIcon", JSON.stringify(pluginData))
+				changedNode.appendChild(svg)
+
+
+			}
+
+			if (element.status === "deleted") {
+
+				console.log("mark node as deleted");
+
+				let changedNode = figma.getNodeById(element.id)
+				const pluginData = element
+				changedNode.setPluginData("importedIcon", JSON.stringify(pluginData))
+
+			}
+
+
+			// console.log(element);
+			// console.log(existingNodes[i]);
+
+
+			// console.log(`Place element at ${targetCoords}`);
+
+
+			// }
+
+			// if (element.status === "added") {
+			// 	carryDelta++
+			// 	console.log("add one");
+
+			// } else if (element.status === "removed") {
+			// 	carryDelta--
+			// 	console.log("remove one");
+
+			// }
+
+
+
+
+
+
+			let currentElementHash = element.hash
+
+
+
+
+			// if (element.status == "added" && existingNodes.length > 0) {
+			// 	console.log(element);
+
+			// 	let node = figma.getNodeById(existingNodes[i].id)
+
+			// 	console.log(node);
+
+			// }
+
+
+
+			// const svg = figma.createNodeFromSvg(element.svg)
+			// svg.name = "svg"
+			// // svg.x = 0 + 64 * column
+			// // svg.y = 400 + row * 80
+
+			// const pluginData = element
+
+
+
+
+			// const component = figma.createComponent()
+			// component.resizeWithoutConstraints(svg.width, svg.height)
+
+			// component.x = 0 + 64 * column
+			// component.y = 400 + row * 80
+
+			// let name
+			// if (element.folder.length != 0) {
+			// 	name = element.name + " / " + element.folder[0]
+			// } else {
+			// 	name = element.name
+			// }
+
+			// // if (element.status == "added") {
+			// //   createNewIconMarker(component)
+			// // }
+
+			// // "#008000"
+
+			// component.name = name
+
+			// pluginData.id = component.id
+
+			// component.setPluginData("importedIcon", JSON.stringify(pluginData))
+			// component.appendChild(svg)
+
+			// if (i % columnCount == columnCount - 1) {
+			// 	row++
+			// }
+
+			// row = Math.floor(i / columnCount)
+
+			// column = (i + 1) % columnCount
 		});
+
+		for (const prop in changeLog) {
+			console.log(`${changeLog[prop].length} item(s) ${prop}`);
+		}
 
 	}
 
@@ -151,4 +352,16 @@ function createNewIconMarker(elem: ComponentNode) {
 
 	figma.currentPage.appendChild(rectangle)
 
+}
+
+function getCoords(_row, _column) {
+
+	let xPos = 0 + 64 * _column
+	let yPos = 400 + _row * 80
+
+
+	return {
+		x: xPos,
+		y: yPos
+	}
 }

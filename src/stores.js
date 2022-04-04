@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store';
+import { writable, readable } from 'svelte/store';
 
 export let fileList = writable([]);
 
@@ -23,3 +23,5 @@ export let activePreset = writable(0)
 
 
 export let rootFolder = writable("")
+
+export const appVersion = readable("0.1.0")

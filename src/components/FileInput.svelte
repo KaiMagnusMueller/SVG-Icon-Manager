@@ -4,7 +4,7 @@
 	import { GlobalCSS, Button } from "figma-plugin-ds-svelte";
 
 	import { onMount } from "svelte";
-	import { fileList, rootFolder } from "../stores.js";
+	import { fileList, rootFolder, appVersion } from "../stores.js";
 
 	import { cyrb53, getPathData, getIconSize, parseDOM } from "../svg-helpers";
 
@@ -77,6 +77,7 @@
 					hash: fileHash,
 					folder: fileDirectory,
 					status: "",
+					createdVersion: $appVersion,
 				});
 
 				if (i == cleanedFiles.length - 1) {
@@ -170,7 +171,25 @@
 			added: [],
 			changed: [],
 			deleted: [],
+			unchanged: [],
 		};
+
+		//unchanged
+		let hashesInBothSets = new Set(
+			[...figmaHashSet].filter((x) => filesHashSet.has(x))
+		);
+
+		hashesInBothSets.forEach((hash) => {
+			let objInFigma = _figmaNodes.find((o) => o.hash === hash);
+			let objInFiles = _selectedFiles.find((o) => o.hash === hash);
+
+			// console.log(
+			// 	`Found unchanged item in files with name ${objInFiles.name}`
+			// );
+			//add existing id to object
+			objInFiles.id = objInFigma.id;
+			changedItems.unchanged.push(objInFiles);
+		});
 
 		//changed
 		//same name with same properties exists in figma & selected files, but hash changed

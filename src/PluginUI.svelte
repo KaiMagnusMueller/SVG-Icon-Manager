@@ -101,7 +101,7 @@
 	}
 </script>
 
-<div class="wrapper p-xxsmall" class:height-full={_files.length === 0}>
+<div class="wrapper" class:height-full={_files.length === 0}>
 	{#if _files.length === 0}
 		<div class="placeholder">
 			<FileInput />
@@ -111,10 +111,14 @@
 			>
 		</div>
 	{:else if _files.length > 0}
-		<FileInput />
-		<Section class="mt-huge">File List</Section>
-		<FileList />
-		<Button on:click={handleSubmit} class="mt-small">Submit</Button>
+		<div class="top-section p-xxsmall">
+			<FileInput />
+		</div>
+		<div class="content-section p-xxsmall">
+			<Section class="mt-huge">File List</Section>
+			<FileList />
+			<Button on:click={handleSubmit} class="mt-small">Submit</Button>
+		</div>
 	{/if}
 </div>
 
@@ -128,10 +132,18 @@
 		font-size: var(--font-size-small) !important;
 	}
 
-	.wrapper {
+	.top-section {
+		background-color: #f1f1f1;
+		border-bottom: 1px solid #d6d6d6;
+	}
+
+	.content-section {
 		display: flex;
 		flex-direction: column;
 		align-items: baseline;
+	}
+
+	.wrapper {
 	}
 
 	.height-full {
