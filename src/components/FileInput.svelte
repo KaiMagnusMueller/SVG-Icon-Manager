@@ -4,7 +4,12 @@
 	import { GlobalCSS, Button } from "figma-plugin-ds-svelte";
 
 	import { onMount } from "svelte";
-	import { fileList, rootFolder, appVersion } from "../stores.js";
+	import {
+		fileList,
+		differenceStore,
+		rootFolder,
+		appVersion,
+	} from "../stores.js";
 
 	import { cyrb53, getPathData, getIconSize, parseDOM } from "../svg-helpers";
 
@@ -18,6 +23,11 @@
 	let files;
 
 	let differences;
+
+	/* 
+	TODO: Add event when files are selected, to notify pluginUI 
+	then hide apply changes button
+	*/
 
 	onmessage = (event) => {
 		// console.log("got this from the plugin code", event.data.pluginMessage);
@@ -82,7 +92,7 @@
 
 				if (i == cleanedFiles.length - 1) {
 					differences = detectDifferences($fileList, localArray);
-					console.log(differences);
+					// console.log(differences);
 
 					//TODO: add status in detectDifferences function instead of here
 					if (differences) {
@@ -276,11 +286,13 @@
 			}
 		});
 
-		for (const prop in changedItems) {
-			console.log(`${changedItems[prop].length} item(s) ${prop}`);
-		}
+		// for (const prop in changedItems) {
+		// 	console.log(`${changedItems[prop].length} item(s) ${prop}`);
+		// }
 
 		// console.log(changedItems);
+
+		$differenceStore = changedItems;
 
 		return changedItems;
 

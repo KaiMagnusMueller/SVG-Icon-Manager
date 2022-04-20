@@ -6,28 +6,6 @@
 
     export let _files = [];
 
-    // $: $fileList && getFileContent();
-
-    // function getFileContent() {
-    //     Object.keys(_files).forEach((i) => {
-    //         const file = _files[i];
-
-    //         // promise = getSvgString(file);
-    //         console.log(file);
-
-    //         fileContent.push(file);
-    //     });
-    // }
-
-    // let fileContent = [];
-
-    // // let promise = getSvgString();
-
-    // async function getSvgString(file) {
-    //     const svgPromise = await file.text();
-    //     return svgPromise;
-    // }
-
     fileList.subscribe((value) => {
         _files = value;
     });
@@ -35,7 +13,7 @@
 
 {#if _files.length > 0}
     <ul>
-        {#each _files as file (file)}
+        {#each _files as file (file.hash)}
             <FileListPreview {file} />
         {/each}
     </ul>

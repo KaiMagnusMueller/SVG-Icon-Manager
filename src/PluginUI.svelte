@@ -58,7 +58,7 @@
 
 	var selectedItem;
 
-	import { fileList } from "./stores.js";
+	import { differenceStore, fileList } from "./stores.js";
 	import { debug } from "svelte/internal";
 
 	let _files;
@@ -68,6 +68,20 @@
 	var disabled = true;
 	var selectedShape;
 	var count = 5;
+
+	let _differences;
+	differenceStore.subscribe((value) => {
+		_differences = value;
+	});
+	let categories = [];
+
+	$: {
+		for (const prop in _differences) {
+			console.log(`${_differences[prop].length} item(s) ${prop}`);
+			categories.push(`${_differences[prop].length} item(s) ${prop}`);
+		}
+		console.log(categories);
+	}
 
 	//this is a reactive variable that will return false when a value is selected from
 	//the select menu, its value is bound to the primary buttons disabled prop
@@ -113,11 +127,28 @@
 	{:else if _files.length > 0}
 		<div class="top-section p-xxsmall">
 			<FileInput />
+			<!-- <p>${_differences} icons found</p> -->
+
+			{#if _differences != null}
+				<div class="summary-section">
+					<p>Added:</p>
+					<p>{_differences.added.length}</p>
+					<p>Removed:</p>
+					<p>{_differences.deleted.length}</p>
+					<p>Changed:</p>
+					<p>{_differences.changed.length}</p>
+				</div>
+			{/if}
+			{#each categories as category}
+				<p>{category}</p>
+			{/each}
 		</div>
 		<div class="content-section p-xxsmall">
 			<Section class="mt-huge">File List</Section>
 			<FileList />
-			<Button on:click={handleSubmit} class="mt-small">Submit</Button>
+			<Button on:click={handleSubmit} class="mt-small"
+				>Apply Changes</Button
+			>
 		</div>
 	{/if}
 </div>
@@ -135,6 +166,20 @@
 	.top-section {
 		background-color: #f1f1f1;
 		border-bottom: 1px solid #d6d6d6;
+		display: flex;
+		flex-direction: row;
+		gap: 20px;
+	}
+
+	.summary-section {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4px 10px;
+	}
+
+	.summary-section p {
+		font-size: var(--font-size-xsmall);
+		margin: 0;
 	}
 
 	.content-section {
