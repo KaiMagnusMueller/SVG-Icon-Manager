@@ -1,9 +1,9 @@
 <script>
-	import FileInput from "./components/FileInput.svelte";
+	import FileInput from './components/FileInput.svelte';
 
 	//import Global CSS from the svelte boilerplate
 	//contains Figma color vars, spacing vars, utility classes and more
-	import { GlobalCSS } from "figma-plugin-ds-svelte";
+	import { GlobalCSS } from 'figma-plugin-ds-svelte';
 
 	//import some Svelte Figma UI components
 	import {
@@ -18,39 +18,33 @@
 		OnboardingTip,
 		Switch,
 		Section,
-	} from "figma-plugin-ds-svelte";
+	} from 'figma-plugin-ds-svelte';
 
-	import {
-		Icon,
-		IconVisible,
-		IconSpinner,
-		IconStyles,
-		IconBlend,
-	} from "figma-plugin-ds-svelte";
-	import FileList from "./components/FileList.svelte";
+	import { Icon, IconVisible, IconSpinner, IconStyles, IconBlend } from 'figma-plugin-ds-svelte';
+	import FileList from './components/FileList.svelte';
 
 	//menu items, this is an array of objects to populate to our select menus
 	let menuItems = [
 		{
-			value: "rectangle",
-			label: "Rectangle",
+			value: 'rectangle',
+			label: 'Rectangle',
 			group: null,
 			selected: false,
 		},
-		{ value: "triangle", label: "Triangle ", group: null, selected: false },
-		{ value: "circle", label: "Circle", group: null, selected: false },
+		{ value: 'triangle', label: 'Triangle ', group: null, selected: false },
+		{ value: 'circle', label: 'Circle', group: null, selected: false },
 	];
 
 	let menuItemArray = [
 		{
-			value: "item1",
-			label: "Carbon Design System",
+			value: 'item1',
+			label: 'Carbon Design System',
 			group: null,
 			selected: false,
 		},
 		{
-			value: "item2",
-			label: "Add Configuration ",
+			value: 'item2',
+			label: 'Add Configuration ',
 			group: null,
 			selected: false,
 		},
@@ -58,8 +52,8 @@
 
 	var selectedItem;
 
-	import { differenceStore, fileList } from "./stores.js";
-	import { debug } from "svelte/internal";
+	import { differenceStore, fileList } from './stores.js';
+	import { debug } from 'svelte/internal';
 
 	let _files;
 	fileList.subscribe((value) => {
@@ -91,16 +85,16 @@
 		parent.postMessage(
 			{
 				pluginMessage: {
-					type: "create-shapes",
+					type: 'create-shapes',
 					count: count,
 				},
 			},
-			"*"
+			'*'
 		);
 	}
 
 	function cancel() {
-		parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
+		parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
 	}
 
 	var switchValue;
@@ -108,10 +102,7 @@
 	//Submit button for webkit dir
 	function handleSubmit() {
 		// console.log(filesArray);
-		parent.postMessage(
-			{ pluginMessage: { type: "create-library", doc: _files } },
-			"*"
-		);
+		parent.postMessage({ pluginMessage: { type: 'create-library', doc: _files } }, '*');
 	}
 </script>
 
@@ -119,10 +110,10 @@
 	{#if _files.length === 0}
 		<div class="placeholder">
 			<FileInput />
-			<Label class="placeholder-label mt-xxsmall"
-				>No existing icons found. Import icons into this file by
-				selecting a source folder</Label
-			>
+			<div class="placeholder-label mt-xxsmall">
+				<Label class="">No existing icons found. Import icons into this file by selecting a source folder</Label
+				>
+			</div>
 		</div>
 	{:else if _files.length > 0}
 		<div class="top-section p-xxsmall">
@@ -144,11 +135,9 @@
 			{/each}
 		</div>
 		<div class="content-section p-xxsmall">
-			<Section class="mt-huge">File List</Section>
-			<FileList />
-			<Button on:click={handleSubmit} class="mt-small"
-				>Apply Changes</Button
-			>
+			<Section>File List</Section>
+			<FileList {_files} />
+			<Button on:click={handleSubmit} class="mt-small">Apply Changes</Button>
 		</div>
 	{/if}
 </div>
@@ -196,15 +185,14 @@
 	}
 
 	.placeholder {
-		flex: 2;
 		display: flex;
-		align-self: center;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		height: 100%;
 	}
 
-	:global(.placeholder-label) {
+	.placeholder-label {
 		text-align: center;
 		width: 80% !important;
 		line-height: var(--font-line-height) !important;

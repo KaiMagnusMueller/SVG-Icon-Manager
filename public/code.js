@@ -56,7 +56,7 @@ figma.ui.onmessage = msg => {
             // 	console.log(`Move ${element.status == "" ? "existing" : element.status} node ${existingNodes[i].name} by ${carryDelta} step(s) from ${currentCoords} to ${targetCoords}`);
             // }
             let currentHash = element.hash;
-            let foundIndex = existingIcons.findIndex((e) => e.hash == currentHash);
+            existingIcons.findIndex((e) => e.hash == currentHash);
             // console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
             // let currentFigmaNode = 
             if (element.status === "added") {
@@ -71,7 +71,7 @@ figma.ui.onmessage = msg => {
                 component.y = coords.y;
                 let name;
                 if (element.folder.length != 0) {
-                    name = element.name + " / " + element.folder[0];
+                    name = element.name + " / " + element.folder.join(" / ");
                 }
                 else {
                     name = element.name;
@@ -82,6 +82,11 @@ figma.ui.onmessage = msg => {
                 // "#008000"
                 component.name = name;
                 pluginData.id = component.id;
+                // TODO: offer this as option in the plugin
+                svg.constraints = {
+                    horizontal: "STRETCH",
+                    vertical: "STRETCH"
+                };
                 component.setPluginData("importedIcon", JSON.stringify(pluginData));
                 component.appendChild(svg);
                 carryDelta++;
@@ -140,7 +145,7 @@ figma.ui.onmessage = msg => {
             // 	carryDelta--
             // 	console.log("remove one");
             // }
-            let currentElementHash = element.hash;
+            element.hash;
             // if (element.status == "added" && existingNodes.length > 0) {
             // 	console.log(element);
             // 	let node = figma.getNodeById(existingNodes[i].id)

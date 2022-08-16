@@ -127,7 +127,7 @@ figma.ui.onmessage = msg => {
 
 				let name
 				if (element.folder.length != 0) {
-					name = element.name + " / " + element.folder[0]
+					name = element.name + " / " + element.folder.join(" / ")
 				} else {
 					name = element.name
 				}
@@ -141,6 +141,12 @@ figma.ui.onmessage = msg => {
 				component.name = name
 
 				pluginData.id = component.id
+
+				// TODO: offer this as option in the plugin
+				svg.constraints = {
+					horizontal: "STRETCH",
+					vertical: "STRETCH"
+				}
 
 				component.setPluginData("importedIcon", JSON.stringify(pluginData))
 				component.appendChild(svg)

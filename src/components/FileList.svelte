@@ -1,14 +1,21 @@
 <script>
-    import { fileList } from "../stores.js";
-    import FileListPreview from "./FileListPreview.svelte";
-    import FileInput from "./FileInput.svelte";
-    import { Label } from "figma-plugin-ds-svelte";
+    import { fileList } from '../stores.js';
+    import FileListPreview from './FileListPreview.svelte';
+    import FileInput from './FileInput.svelte';
+    import { Label } from 'figma-plugin-ds-svelte';
 
     export let _files = [];
 
-    fileList.subscribe((value) => {
-        _files = value;
-    });
+    // $: findDupes(_files);
+
+    // function findDupes(param) {
+    //     var duplicates = param.reduce(function (acc, el, i, arr) {
+    //         if (arr.indexOf(el) !== i && acc.indexOf(el) < 0) acc.push(el);
+    //         return acc;
+    //     }, []);
+    //     console.log(duplicates);
+    //     return duplicates;
+    // }
 </script>
 
 {#if _files.length > 0}
