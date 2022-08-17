@@ -53,7 +53,6 @@
 	var selectedItem;
 
 	import { differenceStore, fileList } from './stores.js';
-	import { debug } from 'svelte/internal';
 
 	let _files;
 	fileList.subscribe((value) => {
@@ -136,8 +135,8 @@
 		</div>
 		<div class="content-section p-xxsmall">
 			<Section>File List</Section>
-			<FileList {_files} />
 			<Button on:click={handleSubmit} class="mt-small">Apply Changes</Button>
+			<FileList {_files} />
 		</div>
 	{/if}
 </div>

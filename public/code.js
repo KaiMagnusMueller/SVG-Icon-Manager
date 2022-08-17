@@ -60,18 +60,46 @@ figma.ui.onmessage = msg => {
             // console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
             // let currentFigmaNode = 
             if (element.status === "added") {
+                const pluginData = element;
                 const svg = figma.createNodeFromSvg(element.svg);
                 svg.name = "svg";
-                const pluginData = element;
                 const component = figma.createComponent();
                 component.resizeWithoutConstraints(svg.width, svg.height);
+                svg.outlineStroke;
+                // TODO: Create logic that determines the best course of action for any icon
+                // Some filled icons are bugged, when used in icon components that use the union layer hack for color
+                // const vectors = svg.children
+                // const union = figma.union(vectors, svg)
+                // const fills = clone(union.fills)
+                // // FILL:
+                // // blendMode: "NORMAL"
+                // // color:
+                // // b: 0.8509804010391235
+                // // g: 0.8509804010391235
+                // // r: 0.8509804010391235
+                // // [[Prototype]]: Object
+                // // opacity: 1
+                // // type: "SOLID"
+                // // visible: true
+                // if (fills[0].type === "SOLID") {
+                // 	fills[0].color = { r: 0, g: 0, b: 0 }
+                // }
+                // union.fills = fills
+                component.appendChild(svg);
+                figma.ungroup(svg);
+                // SET COORDINATES
                 let coords = getCoords(row, column);
                 // console.log(`Create node at ${coords.x},${coords.y}`);
                 component.x = coords.x;
                 component.y = coords.y;
                 let name;
-                if (element.folder.length != 0) {
-                    name = element.name + " / " + element.folder.join(" / ");
+                // if (element.folder.length > 1) {
+                // 	name = element.name + " / " + element.folder.join(" / ")
+                // } else {
+                // name = element.name
+                // }
+                if (element.dimensions[0] !== 32 || element.dimensions[1] !== 32) {
+                    name = element.name + "_" + element.dimensions[0];
                 }
                 else {
                     name = element.name;
@@ -82,15 +110,9 @@ figma.ui.onmessage = msg => {
                 // "#008000"
                 component.name = name;
                 pluginData.id = component.id;
-                // TODO: offer this as option in the plugin
-                svg.constraints = {
-                    horizontal: "STRETCH",
-                    vertical: "STRETCH"
-                };
-                component.setPluginData("importedIcon", JSON.stringify(pluginData));
-                component.appendChild(svg);
                 carryDelta++;
                 // console.log("add one");
+                component.setPluginData("importedIcon", JSON.stringify(pluginData));
                 changeLog.added.push(element);
             }
             else {
@@ -115,18 +137,37 @@ figma.ui.onmessage = msg => {
             if (element.status === "changed") {
                 //TODO: Mark node that has changed its size to warn the user
                 let changedNode = figma.getNodeById(element.id);
+                console.log(element);
+                console.log(changedNode);
                 const svg = figma.createNodeFromSvg(element.svg);
                 svg.name = "svg";
                 const children = changedNode.children;
+                changedNode.resizeWithoutConstraints(svg.width, svg.height);
                 console.log("Changed Node");
                 console.log(children);
                 children.forEach(element => {
                     element.remove();
                 });
-                changedNode.resizeWithoutConstraints(svg.width, svg.height);
+                const vectors = svg.children;
+                const union = figma.union(vectors, svg);
+                const fills = clone(union.fills);
+                if (fills[0].type === "SOLID") {
+                    fills[0].color = { r: 0, g: 0, b: 0 };
+                }
+                union.fills = fills;
                 const pluginData = element;
                 changedNode.setPluginData("importedIcon", JSON.stringify(pluginData));
                 changedNode.appendChild(svg);
+                figma.ungroup(svg);
+                // const svg = figma.createNodeFromSvg(element.svg)
+                // svg.name = "svg"
+                // const component = figma.createComponent()
+                // component.resizeWithoutConstraints(svg.width, svg.height)
+                // const vectors = svg.children
+                // const union = figma.union(vectors, svg)
+                // component.setPluginData("importedIcon", JSON.stringify(pluginData))
+                // component.appendChild(svg)
+                // figma.ungroup(svg)
             }
             if (element.status === "deleted") {
                 console.log("mark node as deleted");
@@ -188,6 +229,32 @@ figma.ui.onmessage = msg => {
     // keep running, which shows the cancel button at the bottom of the screen.
     // figma.closePlugin();
 };
+function clone(val) {
+    const type = typeof val;
+    if (val === null) {
+        return null;
+    }
+    else if (type === 'undefined' || type === 'number' ||
+        type === 'string' || type === 'boolean') {
+        return val;
+    }
+    else if (type === 'object') {
+        if (val instanceof Array) {
+            return val.map(x => clone(x));
+        }
+        else if (val instanceof Uint8Array) {
+            return new Uint8Array(val);
+        }
+        else {
+            let o = {};
+            for (const key in val) {
+                o[key] = clone(val[key]);
+            }
+            return o;
+        }
+    }
+    throw 'unknown';
+}
 function getCoords(_row, _column) {
     let xPos = 0 + 64 * _column;
     let yPos = 400 + _row * 80;
