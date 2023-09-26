@@ -1,14 +1,14 @@
 <script>
-    import { parseDOM } from "../svg-helpers";
-    import { onMount } from "svelte";
-    export let file;
+    import { parseDOM } from '../svg-helpers'
+    import { onMount } from 'svelte'
+    export let file
 
-    const svgElem = parseDOM(file.svg).firstChild;
-    let container;
-    $: title = file.name + " " + file.folder + " " + file.status;
+    const svgElem = parseDOM(file.svg).firstChild
+    let container
+    $: title = file.name + ' ' + file.folder + ' ' + file.status
     onMount(() => {
-        container.appendChild(svgElem);
-    });
+        container.appendChild(svgElem)
+    })
 </script>
 
 <li class={file.status} {title}>
@@ -30,7 +30,7 @@
     }
 
     li:hover {
-        background-color: rgb(228, 228, 228);
+        background-color: var(--figma-color-bg-hover);
     }
 
     li:focus {
@@ -40,26 +40,29 @@
     li div {
         aspect-ratio: 1/1;
         padding: 4px;
+        fill: var(--figma-color-text);
     }
 
     div :global(svg) {
         aspect-ratio: 1;
     }
-
+    /* 
     li p {
         display: none;
-    }
+    } */
 
     .changed {
-        border-color: cornflowerblue;
+        border-color: var(--figma-color-border-brand-strong);
+        background-color: var(--figma-color-bg-brand-tertiary);
     }
 
     .added {
-        border-color: green;
+        border-color: var(--figma-color-border-success-strong);
     }
 
     .deleted {
-        border-color: salmon;
+        border-color: var(--figma-color-border-danger-strong);
+        background-color: var(--figma-color-bg-danger-tertiary);
     }
 
     li.deleted div {

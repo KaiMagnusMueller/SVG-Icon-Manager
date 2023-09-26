@@ -1,291 +1,298 @@
 <script>
-	//import Global CSS from the svelte boilerplate
-	//contains Figma color vars, spacing vars, utility classes and more
-	import { GlobalCSS, Button } from 'figma-plugin-ds-svelte';
+    //import Global CSS from the svelte boilerplate
+    //contains Figma color vars, spacing vars, utility classes and more
+    import { GlobalCSS, Button } from 'figma-plugin-ds-svelte'
 
-	import { onMount } from 'svelte';
-	import { fileList, differenceStore, rootFolder, appVersion } from '../stores.js';
+    import { onMount } from 'svelte'
+    import { fileList, differenceStore, rootFolder, appVersion } from '../stores.js'
 
-	import { cyrb53, getPathData, getIconSize, parseDOM } from '../svg-helpers';
+    import { cyrb53, getPathData, getIconSize, parseDOM } from '../svg-helpers'
+    import { createEventDispatcher } from 'svelte'
 
-	let filePicker;
-	onMount(() => {
-		filePicker = document.getElementById('fileInput');
-	});
+    export let variant = 'primary'
 
-	let figmaNodes = [];
-	let _filesArray = [];
-	let files;
+    let filePicker
+    onMount(() => {
+        filePicker = document.getElementById('fileInput')
+    })
 
-	let differences;
+    let figmaNodes = []
+    let _filesArray = []
+    let files
 
-	/* 
+    let differences
+
+    /* 
 	TODO: Add event when files are selected, to notify pluginUI 
 	then hide apply changes button
 	*/
 
-	onmessage = (event) => {
-		// console.log("got this from the plugin code", event.data.pluginMessage);
-
-		if (event.data.pluginMessage.type == 'loaded-nodes') {
-			figmaNodes = event.data.pluginMessage.data;
-			console.log('got existing icons from Figma');
-
-			figmaNodes.sort(function (a, b) {
-				return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-			});
-
-			$fileList = figmaNodes;
-
-			// handeLoadedNodes(event.data.pluginMessage.data)
-		} else if (event.data.pluginMessage.type == 'loaded-nodes-empty') {
-			//handleEmptyNodes()
-		}
-	};
-
-	function cleanFiles(_files) {
-		let fileArray = [];
-		Object.keys(_files).forEach((i) => {
-			const file = _files[i];
-			if (!validFileType(file)) {
-				// console.log(`skipped: ${file.name} in ${file.webkitRelativePath} with file type: ${file.type} .`);
-				return;
-			}
-			fileArray.push(file);
-		});
-		return fileArray;
-	}
-
-	let localArray = [];
-
-	function printEvent(event) {
-		$rootFolder = event.target.files[0].webkitRelativePath.split('/')[0];
-	}
-
-	function updateFileList(e) {
-		const cleanedFiles = cleanFiles(e);
-
-		cleanedFiles.forEach((element, i) => {
-			getSvgString(element).then((result) => {
-				const fileName = element.name.split('.')[0];
-				const fileContent = result;
-
-				const dataToHash = fileContent + fileName;
-				const fileHash = cyrb53(dataToHash);
-
-				const fileDirectory = getPathData(element);
-
-				const svgDoc = parseDOM(fileContent);
-				const svgSize = getIconSize(svgDoc);
-
-				// console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
-
-				localArray.push({
-					name: fileName,
-					svg: fileContent,
-					dimensions: svgSize,
-					hash: fileHash,
-					folder: fileDirectory,
-					status: '',
-					createdVersion: $appVersion,
-				});
-
-				if (i == cleanedFiles.length - 1) {
-					differences = detectDifferences($fileList, localArray);
-					// console.log(differences);
-
-					//TODO: add status in detectDifferences function instead of here
-					if (differences) {
-						Object.keys(differences).forEach((keyName) => {
-							const diffTypeArray = differences[keyName];
-							// console.log(keyName);
-
-							diffTypeArray.forEach((element) => {
-								if (keyName == 'deleted') {
-									//add element from difference array to flesArray if it was deleted (to restore it)
-									localArray.push(element);
-									// console.log(element);
-								}
-
-								//handle changed element
-								let modifiedItem = localArray.find((i) => i.hash === element.hash);
-
-								// console.log(modifiedItem);
-
-								//change status of element, modifiedItem is the element in files array
-								modifiedItem.status = keyName;
-								// console.log(modifiedItem);
-							});
-						});
-					} else {
-						//if there are no figma nodes, differences is null, mark all as added
-						localArray.forEach((element) => {
-							element.status = 'added';
-						});
-					}
-
-					localArray.sort(function (a, b) {
-						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-					});
+    function cleanFiles(_files) {
+        let fileArray = []
+        Object.keys(_files).forEach((i) => {
+            const file = _files[i]
+            if (!validFileType(file)) {
+                // console.log(`skipped: ${file.name} in ${file.webkitRelativePath} with file type: ${file.type} .`);
+                return
+            }
+            fileArray.push(file)
+        })
+        return fileArray
+    }
+
+    let localArray = []
+
+    let dispatch = createEventDispatcher()
+
+    function filesSelected(files) {
+        dispatch('readFiles', 'reading')
+
+        console.log('filesSelected')
+        setTimeout(() => {
+            printEvent
+            updateFileList(files)
+        }, 50)
+    }
+
+    function printEvent(event) {
+        $rootFolder = event.target.files[0].webkitRelativePath.split('/')[0]
+    }
+
+    function updateFileList(e) {
+        const cleanedFiles = cleanFiles(e)
+
+        cleanedFiles.forEach((element, i) => {
+            getSvgString(element).then((result) => {
+                const fileName = element.name.split('.')[0]
+                const fileContent = result
+
+                const dataToHash = fileContent + fileName
+                const fileHash = cyrb53(dataToHash)
+
+                const fileDirectory = getPathData(element)
+
+                const svgDoc = parseDOM(fileContent)
+                const svgSize = getIconSize(svgDoc)
+
+                // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
+
+                localArray.push({
+                    name: fileName,
+                    svg: fileContent,
+                    dimensions: svgSize,
+                    hash: fileHash,
+                    folder: fileDirectory,
+                    status: '',
+                    createdVersion: $appVersion,
+                })
+
+                if (i == cleanedFiles.length - 1) {
+                    differences = detectDifferences($fileList, localArray)
+                    // console.log(differences);
+
+                    //TODO: add status in detectDifferences function instead of here
+                    if (differences) {
+                        Object.keys(differences).forEach((keyName) => {
+                            const diffTypeArray = differences[keyName]
+                            // console.log(keyName);
+
+                            diffTypeArray.forEach((element) => {
+                                if (keyName == 'deleted') {
+                                    //add element from difference array to flesArray if it was deleted (to restore it)
+                                    localArray.push(element)
+                                    // console.log(element);
+                                }
+
+                                //handle changed element
+                                let modifiedItem = localArray.find((i) => i.hash === element.hash)
+
+                                // console.log(modifiedItem);
+
+                                //change status of element, modifiedItem is the element in files array
+                                modifiedItem.status = keyName
+                                // console.log(modifiedItem);
+                            })
+                        })
+                    } else {
+                        //if there are no figma nodes, differences is null, mark all as added
+                        localArray.forEach((element) => {
+                            element.status = 'added'
+                        })
+                    }
+
+                    localArray.sort(function (a, b) {
+                        return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+                    })
+
+                    $fileList = localArray
+                }
+            })
+        })
+    }
+
+    async function getSvgString(file) {
+        return await file.text()
+    }
 
-					$fileList = localArray;
-				}
-			});
-		});
-	}
+    const fileTypes = ['image/svg+xml']
 
-	async function getSvgString(file) {
-		return await file.text();
-	}
-
-	const fileTypes = ['image/svg+xml'];
+    function validFileType(file) {
+        return fileTypes.includes(file.type)
+    }
 
-	function validFileType(file) {
-		return fileTypes.includes(file.type);
-	}
+    function detectDifferences(_figmaNodes, _selectedFiles) {
+        if (!_figmaNodes) {
+            console.info('no imported icons exist in Figma')
+            return null
+        }
+
+        const figmaHash = _figmaNodes.map((a) => a.hash)
+        const filesHash = _selectedFiles.map((a) => a.hash)
+
+        let figmaHashSet = new Set([...figmaHash])
+        let filesHashSet = new Set([...filesHash])
 
-	function detectDifferences(_figmaNodes, _selectedFiles) {
-		if (!_figmaNodes) {
-			console.info('no imported icons exist in Figma');
-			return null;
-		}
+        //check if there are less files selected than there are in figma
+        //returns icons, that appear in Figma, but not in the selected files
+        //relative complement of selected files in Figma
+        var hashesOnlyInFigma = new Set([...figmaHashSet].filter((x) => !filesHashSet.has(x)))
+
+        //check if there are more files selected than there are in figma
+        //returns icons, that appear in the selected files, but not in Figma
+        //relative complement of Figma in selected files
+        var hashesOnlyInFiles = new Set([...filesHashSet].filter((x) => !figmaHashSet.has(x)))
+
+        // console.log(hashesOnlyInFigma);
+        // console.log(hashesOnlyInFiles);
+
+        let changedItems = {
+            added: [],
+            changed: [],
+            deleted: [],
+            unchanged: [],
+        }
+
+        //unchanged
+        let hashesInBothSets = new Set([...figmaHashSet].filter((x) => filesHashSet.has(x)))
 
-		const figmaHash = _figmaNodes.map((a) => a.hash);
-		const filesHash = _selectedFiles.map((a) => a.hash);
+        hashesInBothSets.forEach((hash) => {
+            let objInFigma = _figmaNodes.find((o) => o.hash === hash)
+            let objInFiles = _selectedFiles.find((o) => o.hash === hash)
 
-		let figmaHashSet = new Set([...figmaHash]);
-		let filesHashSet = new Set([...filesHash]);
+            // console.log(
+            // 	`Found unchanged item in files with name ${objInFiles.name}`
+            // );
+            //add existing id to object
+            objInFiles.id = objInFigma.id
+            changedItems.unchanged.push(objInFiles)
+        })
 
-		//check if there are less files selected than there are in figma
-		//returns icons, that appear in Figma, but not in the selected files
-		//relative complement of selected files in Figma
-		var hashesOnlyInFigma = new Set([...figmaHashSet].filter((x) => !filesHashSet.has(x)));
+        //changed
+        //same name with same properties exists in figma & selected files, but hash changed
 
-		//check if there are more files selected than there are in figma
-		//returns icons, that appear in the selected files, but not in Figma
-		//relative complement of Figma in selected files
-		var hashesOnlyInFiles = new Set([...filesHashSet].filter((x) => !figmaHashSet.has(x)));
+        const figmaNames = _figmaNodes.map((a) => a.name)
+        const filesNames = _selectedFiles.map((a) => a.name)
 
-		// console.log(hashesOnlyInFigma);
-		// console.log(hashesOnlyInFiles);
+        let figmaNameSet = new Set([...figmaNames])
+        let filesNameSet = new Set([...filesNames])
 
-		let changedItems = {
-			added: [],
-			changed: [],
-			deleted: [],
-			unchanged: [],
-		};
+        var intersectingNames = new Set([...figmaNameSet].filter((x) => filesNameSet.has(x)))
+        // console.log(intersectingNames);
 
-		//unchanged
-		let hashesInBothSets = new Set([...figmaHashSet].filter((x) => filesHashSet.has(x)));
+        hashesOnlyInFigma.forEach((hash) => {
+            let objInFigma = _figmaNodes.find((o) => o.hash === hash)
 
-		hashesInBothSets.forEach((hash) => {
-			let objInFigma = _figmaNodes.find((o) => o.hash === hash);
-			let objInFiles = _selectedFiles.find((o) => o.hash === hash);
+            let changedName = objInFigma.name
+            let changedFolder = objInFigma.folder
 
-			// console.log(
-			// 	`Found unchanged item in files with name ${objInFiles.name}`
-			// );
-			//add existing id to object
-			objInFiles.id = objInFigma.id;
-			changedItems.unchanged.push(objInFiles);
-		});
+            //folder [0] hardcoded, seems to be somehow different when coming from o.folder and objInFigma.folder
+            //needs to be updated, if icons are in a folder structure deeper than one level
+            let objInFiles = _selectedFiles.find(
+                (o) => o.name === objInFigma.name && o.folder[0] === changedFolder[0]
+            )
 
-		//changed
-		//same name with same properties exists in figma & selected files, but hash changed
+            // console.log(objInFigma);
+            // console.log(objInFiles);
 
-		const figmaNames = _figmaNodes.map((a) => a.name);
-		const filesNames = _selectedFiles.map((a) => a.name);
+            if (objInFiles) {
+                console.log(
+                    `Found changed item in files with name ${changedName} in folder ${changedFolder}`
+                )
 
-		let figmaNameSet = new Set([...figmaNames]);
-		let filesNameSet = new Set([...filesNames]);
+                //add existing id to object
+                objInFiles.id = objInFigma.id
 
-		var intersectingNames = new Set([...figmaNameSet].filter((x) => filesNameSet.has(x)));
-		// console.log(intersectingNames);
+                changedItems.changed.push(objInFiles)
 
-		hashesOnlyInFigma.forEach((hash) => {
-			let objInFigma = _figmaNodes.find((o) => o.hash === hash);
+                hashesOnlyInFigma.delete(hash)
+                hashesOnlyInFiles.delete(objInFiles.hash)
+                //double check if the next entry is not getting deleted here
+            }
+        })
 
-			let changedName = objInFigma.name;
-			let changedFolder = objInFigma.folder;
+        //TODO: reference obj in figma in files
 
-			//folder [0] hardcoded, seems to be somehow different when coming from o.folder and objInFigma.folder
-			//needs to be updated, if icons are in a folder structure deeper than one level
-			let objInFiles = _selectedFiles.find((o) => o.name === objInFigma.name && o.folder[0] === changedFolder[0]);
+        //deleted
+        //hash & name don't exist in selected files
+        //hash & name exist only in Figma
+        hashesOnlyInFigma.forEach((hash) => {
+            let objInFigma = _figmaNodes.find((o) => o.hash === hash)
 
-			// console.log(objInFigma);
-			// console.log(objInFiles);
+            //find objects with same name in files
+            let objInFiles = _selectedFiles.find(
+                (o) => o.name === objInFigma.name && o.hash === objInFigma.hash
+            )
 
-			if (objInFiles) {
-				console.log(`Found changed item in files with name ${changedName} in folder ${changedFolder}`);
+            // console.log("objInFigma: ");
+            // console.log(objInFigma);
 
-				//add existing id to object
-				objInFiles.id = objInFigma.id;
+            if (!objInFiles) {
+                changedItems.deleted.push(objInFigma)
+            }
+        })
 
-				changedItems.changed.push(objInFiles);
+        //added
+        //hash & name don't exist in figma
+        //hash & name only exist in selected files
 
-				hashesOnlyInFigma.delete(hash);
-				hashesOnlyInFiles.delete(objInFiles.hash);
-				//double check if the next entry is not getting deleted here
-			}
-		});
+        hashesOnlyInFiles.forEach((hash) => {
+            let objInFiles = _selectedFiles.find((o) => o.hash === hash)
 
-		//TODO: reference obj in figma in files
+            //find objects with same name in Figma
+            let objInFigma = _figmaNodes.find(
+                (o) => o.name === objInFiles.name && o.hash === objInFiles.hash
+            )
 
-		//deleted
-		//hash & name don't exist in selected files
-		//hash & name exist only in Figma
-		hashesOnlyInFigma.forEach((hash) => {
-			let objInFigma = _figmaNodes.find((o) => o.hash === hash);
+            if (!objInFigma) {
+                changedItems.added.push(objInFiles)
+            }
+        })
 
-			//find objects with same name in files
-			let objInFiles = _selectedFiles.find((o) => o.name === objInFigma.name && o.hash === objInFigma.hash);
+        // for (const prop in changedItems) {
+        // 	console.log(`${changedItems[prop].length} item(s) ${prop}`);
+        // }
 
-			// console.log("objInFigma: ");
-			// console.log(objInFigma);
+        // console.log(changedItems);
 
-			if (!objInFiles) {
-				changedItems.deleted.push(objInFigma);
-			}
-		});
+        $differenceStore = changedItems
 
-		//added
-		//hash & name don't exist in figma
-		//hash & name only exist in selected files
+        //Spaghetti
+        dispatch('readFiles', 'done')
 
-		hashesOnlyInFiles.forEach((hash) => {
-			let objInFiles = _selectedFiles.find((o) => o.hash === hash);
+        return changedItems
 
-			//find objects with same name in Figma
-			let objInFigma = _figmaNodes.find((o) => o.name === objInFiles.name && o.hash === objInFiles.hash);
+        // if (_difference.size == 0) {
+        //   return "no differences"
+        // }
 
-			if (!objInFigma) {
-				changedItems.added.push(objInFiles);
-			}
-		});
+        // if (_difference.size > 0) {
+        //   console.log("differences");
+        //   console.log(_difference);
 
-		// for (const prop in changedItems) {
-		// 	console.log(`${changedItems[prop].length} item(s) ${prop}`);
-		// }
+        //   return _difference
+        // }
 
-		// console.log(changedItems);
-
-		$differenceStore = changedItems;
-
-		return changedItems;
-
-		// if (_difference.size == 0) {
-		//   return "no differences"
-		// }
-
-		// if (_difference.size > 0) {
-		//   console.log("differences");
-		//   console.log(_difference);
-
-		//   return _difference
-		// }
-
-		/*         
+        /*         
 	status:
 	  - no change
 		same hash
@@ -299,21 +306,20 @@
 		name exists in figma & selected files, but hash changed
 		all other properties need to be the same as well
 		*/
-	}
+    }
 </script>
 
 <input
-	class="hidden"
-	type="file"
-	id="fileInput"
-	bind:files
-	on:change={updateFileList(files)}
-	on:change={printEvent}
-	webkitdirectory
+    class="hidden"
+    type="file"
+    id="fileInput"
+    bind:files
+    on:change={filesSelected(files)}
+    webkitdirectory
 />
 
-<Button on:click={filePicker.click()} variant="primary">Select Folder</Button>
+<Button on:click={filePicker.click()} {variant}>Select Folder</Button>
 
 <style>
-	/* Add additional global or scoped styles here */
+    /* Add additional global or scoped styles here */
 </style>

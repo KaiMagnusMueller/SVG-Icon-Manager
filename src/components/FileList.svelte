@@ -1,10 +1,7 @@
 <script>
-    import { fileList } from '../stores.js';
-    import FileListPreview from './FileListPreview.svelte';
-    import FileInput from './FileInput.svelte';
-    import { Label } from 'figma-plugin-ds-svelte';
+    import FileListPreview from './FileListPreview.svelte'
 
-    export let _files = [];
+    export let _files = []
 
     // $: findDupes(_files);
 
@@ -19,7 +16,7 @@
 </script>
 
 {#if _files.length > 0}
-    <ul>
+    <ul class="p-xxsmall">
         {#each _files as file (file.hash)}
             <FileListPreview {file} />
         {/each}
@@ -31,8 +28,8 @@
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         grid-gap: 10px;
-        /* margin: 0; */
-        padding: 0;
+        margin: 0;
         align-self: normal;
+        /* margin: 0.5em 0; */
     }
 </style>
