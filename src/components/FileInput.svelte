@@ -4,35 +4,32 @@
     import { GlobalCSS, Button } from 'figma-plugin-ds-svelte'
 
     import { onMount } from 'svelte'
-    import { fileList, differenceStore, rootFolder, appVersion } from '../stores.js'
+    import { differenceStore, rootFolder, appVersion } from '../stores.js'
 
     import { cyrb53, getPathData, getIconSize, parseDOM } from '../svg-helpers'
     import { createEventDispatcher } from 'svelte'
 
     export let variant = 'primary'
+    export let fileList
 
     let filePicker
     onMount(() => {
         filePicker = document.getElementById('fileInput')
     })
 
-    let figmaNodes = []
-    let _filesArray = []
     let files
-
     let differences
-
-    /* 
-	TODO: Add event when files are selected, to notify pluginUI 
-	then hide apply changes button
-	*/
 
     function cleanFiles(_files) {
         let fileArray = []
         Object.keys(_files).forEach((i) => {
             const file = _files[i]
             if (!validFileType(file)) {
-                // console.log(`skipped: ${file.name} in ${file.webkitRelativePath} with file type: ${file.type} .`);
+                console.log(
+                    `skipped: ${file.name} in ${file.webkitRelativePath} with file type ${
+                        file.type || 'unknown'
+                    }.`
+                )
                 return
             }
             fileArray.push(file)
@@ -40,14 +37,13 @@
         return fileArray
     }
 
-    let localArray = []
-
     let dispatch = createEventDispatcher()
 
     function filesSelected(files) {
         dispatch('readFiles', 'reading')
 
-        console.log('filesSelected')
+        console.log('' + files.length + ' files from selection.')
+
         setTimeout(() => {
             printEvent
             updateFileList(files)
@@ -58,80 +54,91 @@
         $rootFolder = event.target.files[0].webkitRelativePath.split('/')[0]
     }
 
-    function updateFileList(e) {
+    async function updateFileList(e) {
+        let localArray = []
         const cleanedFiles = cleanFiles(e)
 
-        cleanedFiles.forEach((element, i) => {
-            getSvgString(element).then((result) => {
-                const fileName = element.name.split('.')[0]
-                const fileContent = result
+        console.log('Getting file contents...')
+        console.time('Files loaded in:     ')
 
-                const dataToHash = fileContent + fileName
-                const fileHash = cyrb53(dataToHash)
+        for (let i = 0; i < cleanedFiles.length; i++) {
+            const file = cleanedFiles[i]
+            const fileName = file.name.split('.')[0]
 
-                const fileDirectory = getPathData(element)
+            const fileContent = await file.text()
+            const fileHash = cyrb53(fileContent + fileName)
+            const fileDirectory = getPathData(file)
+            const svgSize = getIconSize(parseDOM(fileContent))
 
-                const svgDoc = parseDOM(fileContent)
-                const svgSize = getIconSize(svgDoc)
+            // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
 
-                // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
+            localArray.push({
+                name: fileName,
+                svg: fileContent,
+                dimensions: svgSize,
+                hash: fileHash,
+                folder: fileDirectory,
+                status: '',
+                createdVersion: $appVersion,
+            })
+        }
+        console.timeEnd('Files loaded in:     ')
 
-                localArray.push({
-                    name: fileName,
-                    svg: fileContent,
-                    dimensions: svgSize,
-                    hash: fileHash,
-                    folder: fileDirectory,
-                    status: '',
-                    createdVersion: $appVersion,
-                })
+        // console.log(localArray)
+        // This is a hack
+        // For some reason, files are missing sometimes after the local array is built
+        // Since this is rare, simply restarting the file reading process fixes this issue without problems (just takes a little bit longer when that happens)
+        // Wating to see if it still happens with the for loop above. The previos forEach and .then construction looked a bit ugly anyways
+        if (localArray.length < cleanedFiles.length) {
+            console.warn('Files are missing from array! Retrying…')
+            updateFileList(files)
+            throw e
+        }
 
-                if (i == cleanedFiles.length - 1) {
-                    differences = detectDifferences($fileList, localArray)
-                    // console.log(differences);
+        // console.log('' + localArray.length + ' files to check for differences.')
 
-                    //TODO: add status in detectDifferences function instead of here
-                    if (differences) {
-                        Object.keys(differences).forEach((keyName) => {
-                            const diffTypeArray = differences[keyName]
-                            // console.log(keyName);
+        console.time('Detect differences:  ')
+        differences = detectDifferences(fileList, localArray)
+        console.timeEnd('Detect differences:  ')
 
-                            diffTypeArray.forEach((element) => {
-                                if (keyName == 'deleted') {
-                                    //add element from difference array to flesArray if it was deleted (to restore it)
-                                    localArray.push(element)
-                                    // console.log(element);
-                                }
+        console.time('Create diff summary: ')
 
-                                //handle changed element
-                                let modifiedItem = localArray.find((i) => i.hash === element.hash)
+        //TODO: add status in detectDifferences function instead of here
+        if (differences) {
+            Object.keys(differences).forEach((keyName) => {
+                const diffTypeArray = differences[keyName]
+                // console.log(keyName);
 
-                                // console.log(modifiedItem);
-
-                                //change status of element, modifiedItem is the element in files array
-                                modifiedItem.status = keyName
-                                // console.log(modifiedItem);
-                            })
-                        })
-                    } else {
-                        //if there are no figma nodes, differences is null, mark all as added
-                        localArray.forEach((element) => {
-                            element.status = 'added'
-                        })
+                diffTypeArray.forEach((element) => {
+                    if (keyName == 'deleted') {
+                        //add element from difference array to flesArray if it was deleted (to restore it)
+                        localArray.push(element)
+                        // console.log(element);
                     }
 
-                    localArray.sort(function (a, b) {
-                        return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-                    })
+                    //handle changed element
+                    let modifiedItem = localArray.find((i) => i.hash === element.hash)
 
-                    $fileList = localArray
-                }
+                    // console.log(modifiedItem);
+
+                    //change status of element, modifiedItem is the element in files array
+                    modifiedItem.status = keyName
+                    // console.log(modifiedItem);
+                })
             })
-        })
-    }
+        } else {
+            //if there are no figma nodes, differences is null, mark all as added
+            localArray.forEach((element) => {
+                element.status = 'added'
+            })
+        }
 
-    async function getSvgString(file) {
-        return await file.text()
+        localArray.sort(function (a, b) {
+            return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        })
+
+        fileList = localArray
+        console.timeEnd('Create diff summary: ')
     }
 
     const fileTypes = ['image/svg+xml']
@@ -143,6 +150,7 @@
     function detectDifferences(_figmaNodes, _selectedFiles) {
         if (!_figmaNodes) {
             console.info('no imported icons exist in Figma')
+            dispatch('readFiles', 'done')
             return null
         }
 

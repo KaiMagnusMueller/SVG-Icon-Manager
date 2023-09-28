@@ -1,7 +1,7 @@
 <script>
     import FileListPreview from './FileListPreview.svelte'
 
-    export let _files = []
+    export let fileList = []
 
     // $: findDupes(_files);
 
@@ -15,9 +15,9 @@
     // }
 </script>
 
-{#if _files.length > 0}
+{#if fileList.length > 0}
     <ul class="p-xxsmall">
-        {#each _files as file (file.hash)}
+        {#each fileList as file (file.hash)}
             <FileListPreview {file} />
         {/each}
     </ul>

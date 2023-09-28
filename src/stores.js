@@ -1,12 +1,6 @@
 import { writable, readable } from 'svelte/store'
 
-export let fileList = writable([])
-
 export let differenceStore = writable()
-
-// fileList.subscribe(value => {
-//     console.log(value);
-// }); // logs '0'
 
 export let systemPresets = [
     {

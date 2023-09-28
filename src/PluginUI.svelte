@@ -28,12 +28,9 @@
         },
     ]
 
-    import { differenceStore, fileList } from './stores.js'
+    import { differenceStore } from './stores.js'
 
-    let _files
-    fileList.subscribe((value) => {
-        _files = value
-    })
+    let fileList = []
 
     let _differences
     differenceStore.subscribe((value) => {
@@ -60,10 +57,11 @@
         // console.log(filesArray);
 
         setTimeout(() => {
-            parent.postMessage({ pluginMessage: { type: 'create-library', doc: _files } }, '*')
+            console.time('Create library: ')
+            parent.postMessage({ pluginMessage: { type: 'create-library', doc: fileList } }, '*')
 
-            for (let i = 0; i < _files.length; i++) {
-                _files[i].status = ''
+            for (let i = 0; i < fileList.length; i++) {
+                fileList[i].status = ''
             }
 
             // $differenceStore = undefined
@@ -88,7 +86,7 @@
                 return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
             })
 
-            $fileList = figmaNodes
+            fileList = figmaNodes
 
             // handeLoadedNodes(event.data.pluginMessage.data)
 
@@ -96,6 +94,8 @@
             createLibraryState = 'default'
             readFileState = 'default'
         } else if (event.data.pluginMessage.type == 'loaded-nodes-empty') {
+            console.log('no existing icons in Figma')
+
             //handleEmptyNodes()
             fileListLoaded = true
             createLibraryState = 'default'
@@ -109,35 +109,56 @@
 
         if (event.data.pluginMessage.type == 'done-create-library') {
             createLibraryState = 'done'
+            console.timeEnd('Create library: ')
         }
     }
 </script>
+
+<!-- {_differences}
+{filesSubmitted}
+{createLibraryState}
+{fileListLoaded}
+{readFileState}
+{fileList.length} -->
 
 {#if readFileState === 'reading' || readFileState === undefined || createLibraryState === 'creating'}
     <div class="read-file-overlay" transition:fade={{ duration: 100 }}>
         <div />
         <Icon iconName={IconSpinner} spin={true} />
-        <!-- {#if createLibraryState === 'creating'}
-            <Label>{createLibraryProgress}%</Label>
-        {/if} -->
+        {#if createLibraryState === 'creating'}
+            <p>This may take a few seconds</p>
+        {/if}
     </div>
 {/if}
 
-<div class="wrapper" class:height-full={_files.length === 0}>
-    {#if fileListLoaded && _files.length === 0}
+<div class="wrapper" class:height-full={fileList.length === 0}>
+    {#if fileListLoaded && fileList.length === 0}
         <div class="placeholder" transition:fade={{ duration: 100 }}>
-            <FileInput
-                on:readFiles={(e) => (readFileState = e.detail)}
-                on:readFiles={(e) => (filesSubmitted = true)}
-            />
-            <div class="placeholder-label mt-xxsmall">
-                <Label class="">
+            <div class="pl-main-action">
+                <FileInput
+                    bind:fileList
+                    on:readFiles={(e) => (readFileState = e.detail)}
+                    on:readFiles={(filesSubmitted = true)}
+                />
+                <p class="">
                     No existing icons found. Import icons into this file by selecting a source
-                    folder
-                </Label>
+                    folder with .svg files.
+                </p>
+            </div>
+            <div class="pl-hint-bottom">
+                <p class="">
+                    Tip: To create a library with the IBM Carbon Icons, <a
+                        href="https://github.com/carbon-design-system/carbon/tree/main/packages/icons"
+                        target="_blank">clone the repository on GitHub</a
+                    >
+                    or
+                    <a href="https://www.npmjs.com/package/@carbon/icons" target="_blank"
+                        >install it via npm</a
+                    >. Then select the "svg" folder here.
+                </p>
             </div>
         </div>
-    {:else if fileListLoaded && _files.length > 0}
+    {:else if fileListLoaded && fileList.length > 0}
         <div transition:fade={{ duration: 100 }}>
             <div class="content-section">
                 {#if createLibraryState !== 'done'}
@@ -146,13 +167,13 @@
                             <Button on:click={handleSubmit} class="">Apply Changes</Button>
                             <p>
                                 <span>
-                                    {_differences.added.length || 'No'} new icons.
+                                    {_differences.added.length || 'No'} new icons found.
                                 </span>
                                 <span>
-                                    {_differences.deleted.length || 'Zero'} icons were removed and
+                                    {_differences.deleted.length || ' No'} icons were removed and
                                 </span>
                                 <span>
-                                    {_differences.changed.length || 'zero'} changed.
+                                    {_differences.changed.length || 'none'} changed.
                                 </span>
                             </p>
                         {:else if createLibraryState === 'done'}
@@ -160,6 +181,7 @@
                         {:else}
                             <div class="flex justify-content-between">
                                 <FileInput
+                                    bind:fileList
                                     variant="secondary"
                                     on:readFiles={(e) => (filesSubmitted = true)}
                                     on:readFiles={(e) => (readFileState = e.detail)}
@@ -173,24 +195,25 @@
                 {:else}
                     <div class="p-xxsmall">
                         <Label>
-                            {_differences.added.length || 'No'} new icons were added. {_differences
-                                .deleted.length || ' Zero'} icons were removed and {_differences
-                                .changed.length || ' zero'} changed.
+                            {_differences.added.length || 'No'} new icons were added. There were {_differences
+                                .deleted.length || ' no'} removed and {_differences.changed
+                                .length || ' no'} changed icons.
                         </Label>
+                        <Label>Ready to publish the changes in your team library.</Label>
                     </div>
                 {/if}
-                <!-- {_differences}
-    {filesSubmitted}
-                {createLibraryState}
-                {fileListLoaded}
-                {readFileState} -->
-                <FileList {_files} />
+
+                <FileList {fileList} />
             </div>
         </div>
     {/if}
 </div>
 
 <style>
+    a {
+        color: var(--figma-color-text-brand);
+    }
+
     .read-file-overlay {
         z-index: 1000;
         position: fixed;
@@ -201,6 +224,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-direction: column;
+        gap: 4px;
     }
     .read-file-overlay div {
         position: fixed;
@@ -208,20 +233,19 @@
         left: 0;
         height: 100%;
         width: 100%;
-
+        z-index: -1;
         opacity: 0.8;
         background-color: var(--figma-color-bg);
     }
 
-    .custom-menu * .placeholder {
-        font-size: var(--font-size-small) !important;
-    }
-
-    .apply-changes-section p,
-    .apply-changes-section span {
+    .read-file-overlay p {
         font-size: var(--font-size-xsmall);
         margin: 0;
         color: var(--figma-color-text);
+    }
+
+    .custom-menu * .placeholder {
+        font-size: var(--font-size-small) !important;
     }
 
     .apply-changes-section {
@@ -231,6 +255,13 @@
         width: 100%;
         border-bottom: 1px solid var(--figma-color-border);
         gap: var(--size-xxsmall);
+    }
+
+    .apply-changes-section p,
+    .apply-changes-section span {
+        font-size: var(--font-size-xsmall);
+        margin: 0;
+        color: var(--figma-color-text);
     }
 
     .content-section {
@@ -246,14 +277,35 @@
     .placeholder {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
         height: 100%;
+        position: relative;
     }
 
-    .placeholder-label {
+    .pl-main-action {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .placeholder div {
+        padding: 16px 32px;
+    }
+
+    .placeholder p {
+        font-size: var(--font-size-xsmall);
+        font-weight: var(--font-weight-normal);
+        color: var(--figma-color-text-secondary);
+        margin: 8px 0;
         text-align: center;
-        width: 80% !important;
         line-height: var(--font-line-height) !important;
+    }
+
+    .pl-hint-bottom {
+        position: fixed;
+        bottom: 0;
+        border-top: 1px solid var(--figma-color-border);
     }
 </style>
