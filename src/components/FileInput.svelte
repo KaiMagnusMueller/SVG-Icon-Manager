@@ -39,24 +39,25 @@
 
     let dispatch = createEventDispatcher()
 
-    function filesSelected(files) {
+    function filesSelected(e) {
         dispatch('readFiles', 'reading')
 
         console.log('' + files.length + ' files from selection.')
 
         setTimeout(() => {
-            printEvent
+            printEvent(e)
             updateFileList(files)
         }, 50)
     }
 
     function printEvent(event) {
+        console.log(event.target.files[0].webkitRelativePath.split('/')[0])
         $rootFolder = event.target.files[0].webkitRelativePath.split('/')[0]
     }
 
-    async function updateFileList(e) {
+    async function updateFileList(files) {
         let localArray = []
-        const cleanedFiles = cleanFiles(e)
+        const cleanedFiles = cleanFiles(files)
 
         console.log('Getting file contents...')
         console.time('Files loaded in:     ')
@@ -82,6 +83,7 @@
                 createdVersion: $appVersion,
             })
         }
+
         console.timeEnd('Files loaded in:     ')
 
         // console.log(localArray)
@@ -322,7 +324,7 @@
     type="file"
     id="fileInput"
     bind:files
-    on:change={filesSelected(files)}
+    on:change={(e) => filesSelected(e)}
     webkitdirectory
 />
 

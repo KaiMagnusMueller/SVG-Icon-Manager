@@ -1,6 +1,6 @@
 <script>
     import { fade } from 'svelte/transition'
-
+    import HeroImage from './hero-image.svg'
     import FileInput from './components/FileInput.svelte'
     import FileList from './components/FileList.svelte'
 
@@ -74,6 +74,7 @@
     let createLibraryState = undefined
     let readFileState = undefined
     let filesSubmitted = false
+    let hasLibraryInFile = false
 
     // let createLibraryProgress = 0
 
@@ -93,6 +94,7 @@
             fileListLoaded = true
             createLibraryState = 'default'
             readFileState = 'default'
+            hasLibraryInFile = true
         } else if (event.data.pluginMessage.type == 'loaded-nodes-empty') {
             console.log('no existing icons in Figma')
 
@@ -134,27 +136,23 @@
 <div class="wrapper" class:height-full={fileList.length === 0}>
     {#if fileListLoaded && fileList.length === 0}
         <div class="placeholder" transition:fade={{ duration: 100 }}>
+            <!-- <img src="./src/hero-image.png" alt="" /> -->
+            <div class="hero-image">
+                {@html HeroImage}
+            </div>
             <div class="pl-main-action">
                 <FileInput
                     bind:fileList
                     on:readFiles={(e) => (readFileState = e.detail)}
                     on:readFiles={(filesSubmitted = true)}
                 />
-                <p class="">
-                    No existing icons found. Import icons into this file by selecting a source
-                    folder with .svg files.
-                </p>
-            </div>
-            <div class="pl-hint-bottom">
-                <p class="">
-                    Tip: To create a library with the IBM Carbon Icons, <a
-                        href="https://github.com/carbon-design-system/carbon/tree/main/packages/icons"
-                        target="_blank">clone the repository on GitHub</a
-                    >
-                    or
-                    <a href="https://www.npmjs.com/package/@carbon/icons" target="_blank"
-                        >install it via npm</a
-                    >. Then select the "svg" folder here.
+                <p class="">Create a library by selecting a source folder with .svg files.</p>
+                <p>
+                    Read more on how to use this plugin <a
+                        href="https://www.kaimagnus.de/articles/building-icon-libraries-with-icon-library-manager"
+                        target="_blank"
+                        rel="noopener noreferrer">here</a
+                    >.
                 </p>
             </div>
         </div>
@@ -164,18 +162,29 @@
                 {#if createLibraryState !== 'done'}
                     <div class="apply-changes-section flex p-xxsmall align-items-center">
                         {#if _differences != null && createLibraryState !== 'done'}
-                            <Button on:click={handleSubmit} class="">Apply Changes</Button>
-                            <p>
-                                <span>
-                                    {_differences.added.length || 'No'} new icons found.
-                                </span>
-                                <span>
-                                    {_differences.deleted.length || ' No'} icons were removed and
-                                </span>
-                                <span>
-                                    {_differences.changed.length || 'none'} changed.
-                                </span>
-                            </p>
+                            <Button on:click={handleSubmit} class=""
+                                >{hasLibraryInFile ? 'Apply Changes' : 'Create Library'}</Button
+                            >
+                            {#if hasLibraryInFile}
+                                <p>
+                                    <span>
+                                        {_differences.added.length || 'No'} new icons found.
+                                    </span>
+                                    <span>
+                                        {_differences.deleted.length || ' No'} icons were removed and
+                                    </span>
+                                    <span>
+                                        {_differences.changed.length || 'none'} changed.
+                                    </span>
+                                </p>
+                            {:else}
+                                <p>
+                                    <span>
+                                        Continue to create a component library with {_differences
+                                            .added.length || 'No'} new icons here.
+                                    </span>
+                                </p>
+                            {/if}
                         {:else if createLibraryState === 'done'}
                             <!--  -->
                         {:else}
@@ -199,7 +208,7 @@
                                 .deleted.length || ' no'} removed and {_differences.changed
                                 .length || ' no'} changed icons.
                         </Label>
-                        <Label>Ready to publish the changes in your team library.</Label>
+                        <Label>You can now publish the changes in your team library.</Label>
                     </div>
                 {/if}
 
@@ -278,7 +287,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: space-between;
         height: 100%;
         position: relative;
     }
@@ -288,9 +297,6 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-    }
-
-    .placeholder div {
         padding: 16px 32px;
     }
 
@@ -301,11 +307,5 @@
         margin: 8px 0;
         text-align: center;
         line-height: var(--font-line-height) !important;
-    }
-
-    .pl-hint-bottom {
-        position: fixed;
-        bottom: 0;
-        border-top: 1px solid var(--figma-color-border);
     }
 </style>

@@ -153,11 +153,12 @@ figma.ui.onmessage = (msg) => {
 
                 let name
 
-                if (element.dimensions[0] !== 32 || element.dimensions[1] !== 32) {
-                    name = element.name + '_' + element.dimensions[0]
-                } else {
-                    name = element.name
+                name = element.folder.join('/') + '/' + element.name
+
+                if (element.dimensions[0] !== element.dimensions[1]) {
+                    name = name + '_' + element.dimensions[0]
                 }
+
                 component.name = name
 
                 // if (element.status == "added") {
