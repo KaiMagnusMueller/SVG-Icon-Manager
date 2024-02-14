@@ -7,7 +7,7 @@
 console.clear()
 
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__, { width: 320, height: 480, themeColors: true })
+figma.showUI(__html__, { width: 330, height: 500, themeColors: true })
 
 const nodes = figma.currentPage.findAllWithCriteria({
     types: ['COMPONENT'],
@@ -39,6 +39,22 @@ if (existingIcons.length !== 0) {
     figma.ui.postMessage({ type: 'loaded-nodes-empty' })
 }
 
+async function getTutorials() {
+    let tutorial
+    try {
+        tutorial = await figma.clientStorage.getAsync('tutorial')
+    } catch (e) {
+        console.log('Storage error:', e)
+    }
+
+    figma.ui.postMessage({
+        type: 'loaded-tutorial',
+        data: tutorial || undefined,
+    })
+}
+
+getTutorials()
+
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
@@ -46,10 +62,17 @@ figma.ui.onmessage = (msg) => {
     // One way of distinguishing between different types of messages sent from
     // your HTML page is to use an object with a "type" property like this.
 
-    if (msg.type === 'create-library') {
-        const nodes: SceneNode[] = []
-        // console.log(msg.doc);
+    if (msg.type === 'get-tutorials') {
+        console.log('get-tutorials')
+        getTutorials()
+    }
 
+    if (msg.type === 'save-tutorials') {
+        figma.clientStorage.setAsync('tutorial', msg.data)
+        getTutorials()
+    }
+
+    if (msg.type === 'create-library') {
         let row = 0
         let column = 0
 
@@ -117,30 +140,32 @@ figma.ui.onmessage = (msg) => {
 
                 // TODO: Create logic that determines the best course of action for any icon
                 // Some filled icons are bugged, when used in icon components that use the union layer hack for color
+                // Update 12.02.24: With mask based components, this is no longer an issue
 
-                // const vectors = svg.children
-                // const union = figma.union(vectors, svg)
+                // let cleanSVG = figma.createFrame()
+                // cleanSVG.resizeWithoutConstraints(svg.width, svg.height)
+                // cleanSVG.name = element.name
 
-                // const fills = clone(union.fills)
+                // svg.children.forEach((child) => {
+                //     if (
+                //         child.width === svg.width &&
+                //         child.height === svg.height &&
+                //         child.fills[0].color.r === 1 &&
+                //         child.fills[0].color.g === 1 &&
+                //         child.fills[0].color.b === 1
+                //     ) {
+                //         console.log('Skipping full size node. Probably a Figma export artifact.')
+                //         return
+                //     }
 
-                // // FILL:
-                // // blendMode: "NORMAL"
-                // // color:
-                // // b: 0.8509804010391235
-                // // g: 0.8509804010391235
-                // // r: 0.8509804010391235
-                // // [[Prototype]]: Object
-                // // opacity: 1
-                // // type: "SOLID"
-                // // visible: true
+                //     // if (child.type === 'VECTOR' && child.strokes[0]) {
+                //     //     child = child.outlineStroke()
+                //     // }
+                //     child.name = 'Vector'
+                //     cleanSVG.appendChild(child)
+                // })
 
-                // Set fill to black for the union node
-                // if (fills[0].type === "SOLID") {
-                // 	fills[0].color = { r: 0, g: 0, b: 0 }
-                // }
-
-                // union.fills = fills
-
+                // svg.remove()
                 component.appendChild(svg)
                 figma.ungroup(svg)
 
@@ -153,7 +178,10 @@ figma.ui.onmessage = (msg) => {
 
                 let name
 
-                name = element.folder.join('/') + '/' + element.name
+                // console.log(element.name, element.folder)
+
+                name =
+                    element.folder.join('/') + (element.folder.length > 0 ? '/' : '') + element.name
 
                 if (element.dimensions[0] !== element.dimensions[1]) {
                     name = name + '_' + element.dimensions[0]
@@ -230,6 +258,14 @@ figma.ui.onmessage = (msg) => {
 
         for (const prop in changeLog) {
             console.log(`${changeLog[prop].length} item(s) ${prop}`)
+        }
+
+        // Set relaunch button if it is not already present
+        const documentNode = figma.getNodeById('0:0')
+        if (!Object.keys(documentNode.getRelaunchData()).includes('update')) {
+            documentNode.setRelaunchData({
+                update: 'Import SVGs to update icon components in this file',
+            })
         }
 
         figma.ui.postMessage({ type: 'done-create-library' })

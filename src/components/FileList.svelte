@@ -27,9 +27,8 @@
     ul {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        grid-gap: 10px;
+        gap: 10px;
         margin: 0;
         align-self: normal;
-        /* margin: 0.5em 0; */
     }
 </style>

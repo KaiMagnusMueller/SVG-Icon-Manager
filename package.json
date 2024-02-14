@@ -13,7 +13,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "caniuse-lite": "^1.0.30001228",
     "cssnano": "^5.1.13",
-    "figma-plugin-ds-svelte": "^1.1.9",
+    "figma-plugin-ds-svelte": "github:KaiMagnusMueller/figma-plugin-ds-svelte-improved",
     "rollup": "^2.78.0",
     "rollup-plugin-html-bundle": "0.0.3",
     "rollup-plugin-livereload": "^2.0.5",

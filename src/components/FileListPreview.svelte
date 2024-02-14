@@ -27,6 +27,8 @@
         list-style: none;
         border-radius: 4px;
         border: 2px solid transparent;
+        /* min-width: 44px; */
+        /* (330-16-50)/6 = 44 */
     }
 
     li:hover {
@@ -45,6 +47,8 @@
 
     div :global(svg) {
         aspect-ratio: 1;
+        width: 100%;
+        height: 100%;
     }
     /* 
     li p {

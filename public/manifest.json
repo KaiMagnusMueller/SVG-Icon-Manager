@@ -1,10 +1,10 @@
 {
-  "name": "Icon System Manager",
-  "id": "795096273369409539",
-  "api": "1.0.0",
-  "main": "code.js",
-  "ui": "index.html",
-  "editorType": [
-    "figma"
-  ]
+    "name": "Icon Library Manager",
+    "id": "1289313190495880345",
+    "api": "1.0.0",
+    "main": "code.js",
+    "ui": "index.html",
+    "editorType": ["figma"],
+    "networkAccess": { "allowedDomains": ["none"] },
+    "relaunchButtons": [{ "command": "update", "name": "Icon Library Manager" }]
 }
