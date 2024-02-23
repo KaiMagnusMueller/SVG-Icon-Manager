@@ -73,9 +73,7 @@ figma.ui.onmessage = (msg) => {
     }
 
     if (msg.type === 'create-library') {
-        let row = 0
-        let column = 0
-
+        const startingPos = { x: 0, y: 0 }
         const columnCount = 50
 
         let carryDelta = 0
@@ -99,34 +97,12 @@ figma.ui.onmessage = (msg) => {
         //     })
         // }
 
-        msg.doc.forEach((element, i) => {
-            // if (carryDelta != 0) {
+        // Insert icons backwards so the layer list is sorted A-Z in the end (the first inserted icon is at the bottom)
+        const elementsToInsert = msg.doc.reverse()
 
-            row = Math.floor(i / columnCount)
-            column = i % columnCount
-
-            let targetRow = Math.floor((i + carryDelta) / columnCount)
-            let targetColumn = (i + carryDelta) % columnCount
-
-            // console.log("--------------");
-            // // console.log(`Current offset: ${carryDelta}`);
-
-            // console.log(`Row: ${row}, Column: ${column}`);
-
-            let targetCoords = getCoords(targetRow, targetColumn)
-
-            // let currentCoords
-            // if (existingNodes[i]) {
-            // 	currentCoords = [existingNodes[i].x, existingNodes[i].y]
-
-            // 	console.log(`Move ${element.status == "" ? "existing" : element.status} node ${existingNodes[i].name} by ${carryDelta} step(s) from ${currentCoords} to ${targetCoords}`);
-
-            // }
-
+        elementsToInsert.forEach((element, i) => {
             let currentHash = element.hash
-
-            let foundIndex = existingIcons.findIndex((e) => e.hash == currentHash)
-
+            // let foundIndex = existingIcons.findIndex((e) => e.hash == currentHash)
             // console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
 
             if (element.status === 'added') {
@@ -170,15 +146,13 @@ figma.ui.onmessage = (msg) => {
                 figma.ungroup(svg)
 
                 // SET COORDINATES
-                let coords = getCoords(row, column)
+                let coords = getCoords(i, elementsToInsert.length, startingPos, columnCount)
                 // console.log(`Create node at ${coords.x},${coords.y}`);
 
                 component.x = coords.x
                 component.y = coords.y
 
                 let name
-
-                // console.log(element.name, element.folder)
 
                 name =
                     element.folder.join('/') + (element.folder.length > 0 ? '/' : '') + element.name
@@ -187,12 +161,11 @@ figma.ui.onmessage = (msg) => {
                     name = name + '_' + element.dimensions[0]
                 }
 
-                component.name = name
-
                 // if (element.status == "added") {
                 //   createNewIconMarker(component)
                 // }
 
+                component.name = name
                 pluginData.id = component.id
 
                 carryDelta++
@@ -205,7 +178,7 @@ figma.ui.onmessage = (msg) => {
                 let existingNode = figma.getNodeById(element.id)
 
                 if (existingNode) {
-                    let coords = getCoords(row, column)
+                    let coords = getCoords(i, elementsToInsert.length, startingPos, columnCount)
 
                     // console.log(existingNode);
                     // console.log(`moveNode from ${existingNode.x},${existingNode.y} to ${coords.x},${coords.y}`);
@@ -250,7 +223,6 @@ figma.ui.onmessage = (msg) => {
             }
 
             // processedFiles++
-
             // if (processedFiles % 50 === 0) {
             //     progressUpdate(processedFiles)
             // }
@@ -271,10 +243,6 @@ figma.ui.onmessage = (msg) => {
         figma.ui.postMessage({ type: 'done-create-library' })
         figma.notify('Successfully updated icon components')
     }
-
-    // Make sure to close the plugin when you're done. Otherwise the plugin will
-    // keep running, which shows the cancel button at the bottom of the screen.
-    // figma.closePlugin();
 }
 
 function clone(val) {
@@ -326,9 +294,13 @@ function createNewIconMarker(elem: ComponentNode) {
     figma.currentPage.appendChild(rectangle)
 }
 
-function getCoords(_row, _column) {
-    let xPos = 0 + 64 * _column
-    let yPos = 0 + _row * 80
+function getCoords(i, itemCount, startingPos, columnCount) {
+    const row = Math.floor((itemCount - 1 - i) / columnCount)
+    const column = (itemCount - 1 - i) % columnCount
+
+    // TODO: Make gap between icons flexible or relative to the biggest icon in the update
+    const xPos = startingPos.x + 64 * column
+    const yPos = startingPos.y + row * 80
 
     return {
         x: xPos,

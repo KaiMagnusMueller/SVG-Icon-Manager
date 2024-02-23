@@ -1,19 +1,27 @@
 <script>
-    import { parseDOM } from '../svg-helpers'
+    import { parseSVGFromString } from '../svg-helpers'
     import { onMount } from 'svelte'
     export let file
 
-    const svgElem = parseDOM(file.svg).firstChild
-    let container
-    $: title = file.name + ' ' + file.folder + ' ' + file.status
+    const svgElem = parseSVGFromString(file.svg)
+
     onMount(() => {
-        container.appendChild(svgElem)
+        const shadow = container.attachShadow({ mode: 'open' })
+        shadow.appendChild(svgElem)
+        const sheet = new CSSStyleSheet()
+        sheet.replaceSync('svg {aspect-ratio: 1; width: 100%; height: 100%;}')
+        shadow.adoptedStyleSheets = [sheet]
     })
+
+    let container
+    const title =
+        file.name +
+        (file.folder !== '' ? ' ' + file.folder : '') +
+        (file.status !== '' ? ' ' + file.status : '')
 </script>
 
-<li class={file.status} {title}>
-    <div bind:this={container} />
-    <!-- <p>{file.name}</p> -->
+<li class={file.status !== '' ? file.status : ''} {title}>
+    <div bind:this={container}></div>
 </li>
 
 <style>
@@ -45,11 +53,6 @@
         fill: var(--figma-color-text);
     }
 
-    div :global(svg) {
-        aspect-ratio: 1;
-        width: 100%;
-        height: 100%;
-    }
     /* 
     li p {
         display: none;

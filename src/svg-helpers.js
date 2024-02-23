@@ -1,15 +1,15 @@
 import { systemPresets, activePreset, rootFolder } from './stores.js'
 
 //parse document from string
-export function parseDOM(_string) {
+export function parseSVGFromString(_string) {
     const parser = new DOMParser()
-    const doc = parser.parseFromString(_string, 'image/svg+xml')
+    const doc = parser.parseFromString(_string, 'image/svg+xml').querySelector('svg')
     return doc
 }
 
 //get icon size from svg doc
 export function getIconSize(_doc) {
-    let dimensions = _doc.firstChild.viewBox.baseVal
+    const dimensions = _doc.viewBox.baseVal
     return [dimensions.width, dimensions.height]
 }
 

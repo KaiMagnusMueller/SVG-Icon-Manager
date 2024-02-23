@@ -6,7 +6,7 @@
     import { onMount } from 'svelte'
     import { differenceStore, rootFolder, appVersion } from '../stores.js'
 
-    import { cyrb53, getPathData, getIconSize, parseDOM } from '../svg-helpers'
+    import { cyrb53, getPathData, getIconSize, parseSVGFromString } from '../svg-helpers'
     import { createEventDispatcher } from 'svelte'
 
     export let variant = 'primary'
@@ -69,7 +69,7 @@
             const fileContent = await file.text()
             const fileHash = cyrb53(fileContent + fileName)
             const fileDirectory = getPathData(file)
-            const svgSize = getIconSize(parseDOM(fileContent))
+            const svgSize = getIconSize(parseSVGFromString(fileContent))
 
             // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
 
@@ -288,6 +288,7 @@
 
         //Spaghetti
         dispatch('readFiles', 'done')
+        console.time('Display file previews: ')
 
         return changedItems
 

@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from 'svelte'
     import FileListPreview from './FileListPreview.svelte'
 
     export let fileList = []
@@ -13,6 +14,10 @@
     //     console.log(duplicates);
     //     return duplicates;
     // }
+
+    onMount(() => {
+        console.timeEnd('Display file previews: ')
+    })
 </script>
 
 {#if fileList.length > 0}
