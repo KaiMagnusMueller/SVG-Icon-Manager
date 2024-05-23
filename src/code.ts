@@ -7,7 +7,7 @@
 console.clear()
 
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__, { width: 330, height: 500, themeColors: true })
+figma.showUI(__html__, { width: 330, height: 620, themeColors: true })
 
 const nodes = figma.currentPage.findAllWithCriteria({
     types: ['COMPONENT'],

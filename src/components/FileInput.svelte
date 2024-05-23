@@ -289,6 +289,7 @@
         //Spaghetti
         dispatch('readFiles', 'done')
         console.time('Display file previews: ')
+        document.getElementsByTagName('body')[0].scrollTo(0, 0)
 
         return changedItems
 

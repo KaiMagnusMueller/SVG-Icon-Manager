@@ -120,8 +120,8 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 120%;
-        background: linear-gradient(transparent, var(--figma-color-bg) 30%);
+        height: 164%;
+        background: linear-gradient(transparent, var(--figma-color-bg) 40%);
     }
 
     .tutorial--section {
@@ -138,6 +138,7 @@
         flex-direction: row;
         justify-content: end;
         position: relative;
+        padding-inline: 0.5rem;
     }
 
     .tutorial--scroller {

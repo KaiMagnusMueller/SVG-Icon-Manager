@@ -3,6 +3,7 @@
     import HeroImage from './hero-image3.svg'
     import FileInput from './components/FileInput.svelte'
     import FileList from './components/FileList.svelte'
+    import { Confetti } from 'svelte-confetti'
 
     //import Global CSS from the svelte boilerplate
     //contains Figma color vars, spacing vars, utility classes and more
@@ -159,14 +160,16 @@
 
 <div class="wrapper" class:height-full={fileList.length === 0}>
     {#if fileListLoaded && fileList.length === 0}
+        <!-- ----------------------- -->
+        <!-- NO LIBRARY IN THIS FILE -->
+
         <div class="placeholder" transition:fade={{ duration: 100 }}>
             <!-- <img src="./src/hero-image.png" alt="" /> -->
             <div class="hero-image">
                 {@html HeroImage}
             </div>
-
-            <div class="action-card pl-main-action m-xsmall p-xsmall">
-                <div class="action-header">
+            <div class="action-card pl-main-action">
+                <div class="action-header flex flx-row">
                     <FileInput
                         bind:fileList
                         on:readFiles={(e) => (readFileState = e.detail)}
@@ -183,15 +186,71 @@
                 <div class="action-body">
                     <p class="">Create a library by selecting a source folder with .svg files.</p>
                     <p>
-                        Click on 'How to Use' for an introduction to this plugin and how to manage
-                        and update libraries.
+                        Learn how to manage and update libraries even simpler with npm in the
+                        introduction blog post.
+                    </p>
+                </div>
+            </div>
+            <div class="action-card">
+                <div class="action-header">
+                    <h2>Quick Start</h2>
+                    <p>Try out the plugin with carbon icons:</p>
+                </div>
+                <div class="action-body">
+                    <ul>
+                        <li>
+                            <a
+                                target="_blank"
+                                href="https://registry.npmjs.org/@carbon/icons/-/icons-11.36.0.tgz"
+                                >Download the older 11.36 version
+                            </a> of carbon icons from npm and unpack it.
+                        </li>
+                        <li>
+                            Click "Select folder" above and import the "svg" folder from the one you
+                            just unpacked.
+                        </li>
+                        <li>Create the library.</li>
+                        <li>
+                            <a
+                                target="_blank"
+                                href="https://registry.npmjs.org/@carbon/icons/-/icons-11.42.0.tgz"
+                                >Download the newer 11.42 version</a
+                            >, for example.
+                        </li>
+                        <li>Update the library… Profit.</li>
+                    </ul>
+                    <p>
+                        See <a
+                            target="_blank"
+                            href="https://www.kaimagnus.de/articles/building-icon-libraries-with-icon-library-manager"
+                            >the blog post above</a
+                        > for more information.
+                    </p>
+                </div>
+            </div>
+            <div class="action-card pl-main-action">
+                <div class="action-header">
+                    <h2>Feedback</h2>
+                </div>
+                <div class="action-body">
+                    <p>
+                        I'd like to learn more about the users of this plugin. Help me by answering
+                        a few questions about your experience.
+                    </p>
+                    <p>
+                        <a
+                            href="https://docs.google.com/forms/d/e/1FAIpQLScavE3i5hWnqDyNM7Mgc1_shGPRP6hSe7LG7jGqtnT6hhkaOg/viewform?usp=sf_link"
+                            >Google Forms ↗️</a
+                        >
                     </p>
                 </div>
             </div>
         </div>
     {:else if fileListLoaded && fileList.length > 0}
+        <!-- --------------------------- -->
+        <!-- LIBRARY EXISTS IN THIS FILE -->
         <div transition:fade={{ duration: 100 }}>
-            <div class="content-section">
+            <div>
                 {#if createLibraryState !== 'done'}
                     <!-- ------------------------------------------ -->
                     <!-- NO LIBRARY CREATED/UPDATED IN THIS SESSION -->
@@ -225,11 +284,6 @@
                             {/if}
                         </div>
                     {:else}
-                        {#if tutorialLoaded}
-                            <div class="section--tutorial">
-                                <Tutorial {viewedTutorials} />
-                            </div>
-                        {/if}
                         <!-- NO FILES IMPORTED -->
                         <div class="update-library-select flex justify-content-between">
                             <FileInput
@@ -244,6 +298,39 @@
                         </div>
                     {/if}
                 {:else}
+                    <div
+                        style="
+    position: fixed;
+    top: -50px;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    pointer-events: none;"
+                    >
+                        <Confetti
+                            <Confetti
+                            delay={[100, 150]}
+                            x={[-0.6, 0.6]}
+                            y={[-1.25, -0.25]}
+                            cone
+                            xSpread="0.2"
+                        />
+                        <Confetti
+                            delay={[100, 150]}
+                            amount="10"
+                            x={[-0.4, 0.4]}
+                            y={[-1.25, -0.25]}
+                        />
+                        <Confetti
+                            delay={[100, 150]}
+                            amount="10"
+                            x={[-0.4, 0.4]}
+                            y={[-0.75, -0.15]}
+                        />
+                    </div>
                     <!-- --------------------------------------- -->
                     <!-- LIBRARY CREATED/UPDATED IN THIS SESSION -->
                     <div class="change-summary-section">
@@ -256,8 +343,31 @@
                     </div>
                 {/if}
                 <FileList {fileList} />
-
-                <Button variant="tertiary" on:click={resetTutorials}>Reset tutorials</Button>
+                {#if createLibraryState === 'done' || (createLibraryState !== 'done' && _differences == null)}
+                    <div class="placeholder footer">
+                        <div class="action-card pl-main-action">
+                            <div class="action-header">
+                                <!-- <h2>I'm interested in your feedback</h2> -->
+                            </div>
+                            <div class="action-body">
+                                <p>
+                                    I'm interested in your feedback <a
+                                        href="https://docs.google.com/forms/d/e/1FAIpQLScavE3i5hWnqDyNM7Mgc1_shGPRP6hSe7LG7jGqtnT6hhkaOg/viewform?usp=sf_link"
+                                        >Google Forms ↗️</a
+                                    >
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+                {#if createLibraryState !== 'done' && _differences == null && tutorialLoaded}
+                    <div class="section--tutorial">
+                        <Tutorial {viewedTutorials} />
+                    </div>
+                {/if}
+                <footer>
+                    <Button variant="tertiary" on:click={resetTutorials}>Reset tutorials</Button>
+                </footer>
             </div>
         </div>
     {/if}
@@ -340,12 +450,6 @@
         padding: 8px 8px 0 8px;
     }
 
-    .content-section {
-        display: flex;
-        flex-direction: column;
-        align-items: baseline;
-    }
-
     .height-full {
         height: 100%;
     }
@@ -355,13 +459,15 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
-        height: 100%;
         position: relative;
+        padding: 0 1rem 1rem 1rem;
+        gap: 1rem;
     }
 
-    .hero-image {
-        position: absolute;
-        top: 0;
+    .placeholder.footer {
+        margin-top: 1rem;
+        position: sticky;
+        bottom: 0;
     }
 
     .action-card {
@@ -373,6 +479,9 @@
         font-weight: var(--font-weight-normal);
         color: var(--figma-color-text);
         line-height: var(--font-line-height) !important;
+        padding: 1rem;
+        box-shadow: 0px 4px 8px #f1f1f1;
+        width: 100%;
     }
 
     .inline-tutorial:hover {
@@ -384,16 +493,8 @@
         text-decoration: underline;
     } */
 
-    .pl-main-action {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        /* align-items: center; */
-    }
     .action-header {
-        display: flex;
-        gap: 16px;
-        /* justify-content: center; */
+        gap: 1rem;
         align-items: center;
     }
 
@@ -401,8 +502,13 @@
         margin: 0;
     }
 
-    .action-body p {
+    .action-body p:not(:only-child) {
         margin-top: 8px;
+    }
+
+    .action-card ul {
+        margin-bottom: 0;
+        padding-left: 1rem;
     }
 
     .action-body p:not(:last-of-type) {
@@ -411,5 +517,22 @@
 
     .font-large {
         font-size: 20px;
+    }
+
+    h1,
+    h2,
+    h3 {
+        margin: 0;
+    }
+
+    h2 {
+        font-size: var(--font-size-large);
+        font-weight: var(--font-weight-bold);
+
+        margin-block-end: 0.5em;
+    }
+
+    footer {
+        margin-inline: 1rem;
     }
 </style>
