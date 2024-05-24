@@ -307,7 +307,8 @@
     display: flex;
     justify-content: center;
     overflow: hidden;
-    pointer-events: none;"
+    pointer-events: none; 
+    z-index: 999"
                     >
                         <Confetti
                             <Confetti
