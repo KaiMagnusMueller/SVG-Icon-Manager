@@ -125,6 +125,7 @@
         if (event.data.pluginMessage.type == 'done-create-library') {
             createLibraryState = 'done'
             console.timeEnd('Create library: ')
+            document.getElementsByTagName('body')[0].scrollTo(0, 0)
         }
     }
 
@@ -186,8 +187,8 @@
                 <div class="action-body">
                     <p class="">Create a library by selecting a source folder with .svg files.</p>
                     <p>
-                        Learn how to manage and update libraries even simpler with npm in the
-                        introduction blog post.
+                        Learn how to make managing and updating libraries even easier with npm in
+                        the introduction blog post.
                     </p>
                 </div>
             </div>
@@ -197,7 +198,7 @@
                     <p>Try out the plugin with carbon icons:</p>
                 </div>
                 <div class="action-body">
-                    <ul>
+                    <ol>
                         <li>
                             <a
                                 target="_blank"
@@ -218,7 +219,7 @@
                             >, for example.
                         </li>
                         <li>Update the library… Profit.</li>
-                    </ul>
+                    </ol>
                     <p>
                         See <a
                             target="_blank"
@@ -233,15 +234,13 @@
                     <h2>Feedback</h2>
                 </div>
                 <div class="action-body">
+                    <p>I'd like to learn more about the users of this plugin.</p>
                     <p>
-                        I'd like to learn more about the users of this plugin. Help me by answering
-                        a few questions about your experience.
-                    </p>
-                    <p>
-                        <a
+                        Help me by filling out this short <a
+                            target="_blank"
                             href="https://docs.google.com/forms/d/e/1FAIpQLScavE3i5hWnqDyNM7Mgc1_shGPRP6hSe7LG7jGqtnT6hhkaOg/viewform?usp=sf_link"
-                            >Google Forms ↗️</a
-                        >
+                            >Google Form ↗️</a
+                        > to tell me more about your experience, thanks!
                     </p>
                 </div>
             </div>
@@ -301,7 +300,7 @@
                     <div
                         style="
     position: fixed;
-    top: -50px;
+    top: -20px;
     left: 0;
     height: 100vh;
     width: 100vw;
@@ -316,18 +315,21 @@
                             x={[-0.6, 0.6]}
                             y={[-1.25, -0.25]}
                             cone
+                            duration={3000}
                             xSpread="0.2"
                         />
                         <Confetti
                             delay={[100, 150]}
                             amount="10"
                             x={[-0.4, 0.4]}
+                            duration={3000}
                             y={[-1.25, -0.25]}
                         />
                         <Confetti
                             delay={[100, 150]}
                             amount="10"
                             x={[-0.4, 0.4]}
+                            duration={3000}
                             y={[-0.75, -0.15]}
                         />
                     </div>
@@ -351,10 +353,12 @@
                             </div>
                             <div class="action-body">
                                 <p>
-                                    I'm interested in your feedback <a
-                                        href="https://docs.google.com/forms/d/e/1FAIpQLScavE3i5hWnqDyNM7Mgc1_shGPRP6hSe7LG7jGqtnT6hhkaOg/viewform?usp=sf_link"
-                                        >Google Forms ↗️</a
-                                    >
+                                    I'm interested in your feedback. If you have a minute, help me
+                                    by filling out this <a
+                                        target="_blank"
+                                        href="https://docs.google.com/forms/d/e/1FAIpQLScd0UXvrv23e10oRjkSMGtNPjCXHmB0IfGdnWLVUw0YQTxfmg/viewform?usp=sf_link"
+                                        >Google Form ↗️</a
+                                    >, thank you!
                                 </p>
                             </div>
                         </div>
@@ -460,12 +464,12 @@
         align-items: center;
         justify-content: flex-end;
         position: relative;
-        padding: 0 1rem 1rem 1rem;
-        gap: 1rem;
+        padding: 0 0.75rem 0.75rem 0.75rem;
+        gap: 0.75rem;
     }
 
     .placeholder.footer {
-        margin-top: 1rem;
+        margin-top: 0.75rem;
         position: sticky;
         bottom: 0;
     }
@@ -479,8 +483,8 @@
         font-weight: var(--font-weight-normal);
         color: var(--figma-color-text);
         line-height: var(--font-line-height) !important;
-        padding: 1rem;
-        box-shadow: 0px 4px 8px #f1f1f1;
+        padding: 0.75rem;
+        box-shadow: 0px 4px 8px #00000011;
         width: 100%;
     }
 
@@ -506,7 +510,7 @@
         margin-top: 8px;
     }
 
-    .action-card ul {
+    .action-card ol {
         margin-bottom: 0;
         padding-left: 1rem;
     }
@@ -533,6 +537,6 @@
     }
 
     footer {
-        margin-inline: 1rem;
+        margin-inline: 0.75rem;
     }
 </style>
