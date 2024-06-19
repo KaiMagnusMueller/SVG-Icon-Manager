@@ -35,5 +35,6 @@
         gap: 10px;
         margin: 0;
         align-self: normal;
+        margin-bottom: auto;
     }
 </style>

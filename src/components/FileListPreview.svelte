@@ -67,6 +67,12 @@
         border-color: var(--figma-color-border-success-strong);
     }
 
+    @media (prefers-color-scheme: dark) {
+        .added {
+            border-color: var(--figma-color-border-success);
+        }
+    }
+
     .deleted {
         border-color: var(--figma-color-border-danger-strong);
         background-color: var(--figma-color-bg-danger-tertiary);

@@ -159,7 +159,7 @@
     </div>
 {/if}
 
-<div class="wrapper" class:height-full={fileList.length === 0}>
+<div class="min-height-100">
     {#if fileListLoaded && fileList.length === 0}
         <!-- ----------------------- -->
         <!-- NO LIBRARY IN THIS FILE -->
@@ -249,7 +249,7 @@
         <!-- --------------------------- -->
         <!-- LIBRARY EXISTS IN THIS FILE -->
         <div transition:fade={{ duration: 100 }}>
-            <div>
+            <div class="flex column min-height-100">
                 {#if createLibraryState !== 'done'}
                     <!-- ------------------------------------------ -->
                     <!-- NO LIBRARY CREATED/UPDATED IN THIS SESSION -->
@@ -455,8 +455,8 @@
         padding: 8px 8px 0 8px;
     }
 
-    .height-full {
-        height: 100%;
+    .min-height-100 {
+        min-height: 100%;
     }
 
     .placeholder {
