@@ -51,6 +51,7 @@
         aspect-ratio: 1/1;
         padding: 4px;
         fill: var(--figma-color-text);
+        --color-icon: var(--figma-color-text);
     }
 
     /* 
@@ -60,7 +61,7 @@
 
     .changed {
         border-color: var(--figma-color-border-brand-strong);
-        background-color: var(--figma-color-bg-brand-tertiary);
+        /* background-color: var(--figma-color-bg-brand-tertiary); */
     }
 
     .added {
@@ -75,7 +76,7 @@
 
     .deleted {
         border-color: var(--figma-color-border-danger-strong);
-        background-color: var(--figma-color-bg-danger-tertiary);
+        /* background-color: var(--figma-color-bg-danger-tertiary); */
     }
 
     li.deleted div {
