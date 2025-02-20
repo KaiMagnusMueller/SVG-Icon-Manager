@@ -17,3 +17,5 @@ export let activePreset = writable(0)
 export let rootFolder = writable('')
 
 export const appVersion = readable('0.1.0')
+
+export let importLog = writable([])

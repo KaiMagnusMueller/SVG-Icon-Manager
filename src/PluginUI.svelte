@@ -29,7 +29,7 @@
         },
     ]
 
-    import { differenceStore } from './stores.js'
+    import { differenceStore, importLog } from './stores.js'
     import Tutorial from './components/Tutorial.svelte'
 
     let fileList = []
@@ -95,6 +95,7 @@
         if (event.data.pluginMessage.type == 'loaded-nodes') {
             figmaNodes = event.data.pluginMessage.data
             console.log('got existing icons from Figma')
+            console.time('Display file previews: ')
 
             figmaNodes.sort(function (a, b) {
                 return a.name.toLowerCase().localeCompare(b.name.toLowerCase())
@@ -169,7 +170,7 @@
             <div class="hero-image">
                 {@html HeroImage}
             </div>
-            <div class="action-card pl-main-action">
+            <div class="action-card elevation-1 pl-main-action">
                 <div class="action-header flex flx-row">
                     <FileInput
                         bind:fileList
@@ -192,7 +193,7 @@
                     </p>
                 </div>
             </div>
-            <div class="action-card">
+            <div class="action-card elevation-1">
                 <div class="action-header">
                     <h2>Quick Start</h2>
                     <p>Try out the plugin with carbon icons:</p>
@@ -229,7 +230,7 @@
                     </p>
                 </div>
             </div>
-            <div class="action-card pl-main-action">
+            <div class="action-card elevation-1 pl-main-action">
                 <div class="action-header">
                     <h2>Feedback</h2>
                 </div>
@@ -254,32 +255,44 @@
                     <!-- ------------------------------------------ -->
                     <!-- NO LIBRARY CREATED/UPDATED IN THIS SESSION -->
                     {#if _differences != null}
-                        <div class="apply-changes-section p-xxsmall flex align-items-center">
+                        <div class="apply-changes-section p-xxsmall flex column">
                             <!-- SVG FILES IMPORTED -->
-                            <Button on:click={handleSubmit} class=""
-                                >{hasLibraryInFile ? 'Apply Changes' : 'Create Library'}</Button
-                            >
-                            {#if hasLibraryInFile}
-                                <!-- SVG FILES IMPORTED AND LIBRARY EXISTS-->
-                                <p>
-                                    <span>
-                                        {_differences.added.length || 'No'} new icons found.
-                                    </span>
-                                    <span>
-                                        {_differences.deleted.length || ' No'} icons were removed and
-                                    </span>
-                                    <span>
-                                        {_differences.changed.length || 'none'} changed.
-                                    </span>
-                                </p>
-                            {:else}
-                                <!-- SVG FILES IMPORTED AND NO LIBRARY IN FILE-->
-                                <p>
-                                    <span>
-                                        Continue to create a component library with {_differences
-                                            .added.length || 'No'} new icons here.
-                                    </span>
-                                </p>
+                            <div class="flex align-items-center">
+                                <Button on:click={handleSubmit} class=""
+                                    >{hasLibraryInFile ? 'Apply Changes' : 'Create Library'}</Button
+                                >
+                                {#if hasLibraryInFile}
+                                    <!-- SVG FILES IMPORTED AND LIBRARY EXISTS-->
+                                    <p>
+                                        <span>
+                                            {_differences.added.length || 'No'} new icons found.
+                                        </span>
+                                        <span>
+                                            {_differences.deleted.length || ' No'} icons were removed
+                                            and
+                                        </span>
+                                        <span>
+                                            {_differences.changed.length || 'none'} changed.
+                                        </span>
+                                    </p>
+                                {:else}
+                                    <!-- SVG FILES IMPORTED AND NO LIBRARY IN FILE-->
+                                    <p>
+                                        <span>
+                                            Continue to create a component library with {_differences
+                                                .added.length || 'No'} new icons here.
+                                        </span>
+                                    </p>
+                                {/if}
+                            </div>
+                            {#if $importLog.length > 0}
+                                <div class="flex align-items-center">
+                                    <p>
+                                        There were {$importLog.length} issues while reading files. This
+                                        can be caused by corrupted SVG files or missing attributes. Please
+                                        check the console for more information.
+                                    </p>
+                                </div>
                             {/if}
                         </div>
                     {:else}
@@ -298,17 +311,7 @@
                     {/if}
                 {:else}
                     <div
-                        style="
-    position: fixed;
-    top: -20px;
-    left: 0;
-    height: 100vh;
-    width: 100vw;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
-    pointer-events: none; 
-    z-index: 999"
+                        style="position: fixed;top: -20px;left: 0;height: 100vh;width: 100vw;display: flex;justify-content: center;overflow: hidden;pointer-events: none; z-index: 999"
                     >
                         <Confetti
                             <Confetti
@@ -348,7 +351,7 @@
                 <FileList {fileList} />
                 {#if createLibraryState === 'done' || (createLibraryState !== 'done' && _differences == null)}
                     <div class="placeholder footer">
-                        <div class="action-card pl-main-action">
+                        <div class="action-card elevation-1 pl-main-action">
                             <div class="action-header">
                                 <!-- <h2>I'm interested in your feedback</h2> -->
                             </div>
@@ -426,6 +429,10 @@
         gap: var(--size-xxsmall);
     }
 
+    .apply-changes-section div {
+        gap: var(--size-xxsmall);
+    }
+
     .apply-changes-section p,
     .apply-changes-section span {
         font-size: var(--font-size-xsmall);
@@ -476,17 +483,25 @@
     }
 
     .action-card {
-        border: 1px solid var(--figma-color-border);
-        background-color: var(--figma-color-bg-secondary);
-        border-radius: 12px;
+        border-radius: 8px;
         position: relative;
         font-size: var(--font-size-xsmall);
         font-weight: var(--font-weight-normal);
         color: var(--figma-color-text);
         line-height: var(--font-line-height) !important;
         padding: 0.75rem;
-        box-shadow: 0px 4px 8px #00000011;
         width: 100%;
+    }
+
+    .elevation-0 {
+        background-color: var(--figma-color-bg);
+        box-shadow: none;
+    }
+
+    .elevation-1 {
+        border: 1px solid var(--figma-color-border);
+        background-color: var(--figma-color-bg-secondary);
+        box-shadow: 0px 4px 8px #00000011;
     }
 
     .inline-tutorial:hover {
