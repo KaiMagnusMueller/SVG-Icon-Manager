@@ -75,6 +75,7 @@ figma.ui.onmessage = (msg) => {
     if (msg.type === 'create-library') {
         const startingPos = { x: 0, y: 0 }
         const columnCount = 50
+        let createdNodes = []
 
         let carryDelta = 0
 
@@ -112,6 +113,8 @@ figma.ui.onmessage = (msg) => {
                 svg.name = 'svg'
 
                 const component = figma.createComponent()
+                createdNodes.push(component)
+
                 component.resizeWithoutConstraints(svg.width, svg.height)
 
                 // TODO: Create logic that determines the best course of action for any icon
@@ -166,6 +169,7 @@ figma.ui.onmessage = (msg) => {
                 // }
 
                 component.name = name
+
                 pluginData.id = component.id
 
                 carryDelta++
@@ -227,6 +231,10 @@ figma.ui.onmessage = (msg) => {
             //     progressUpdate(processedFiles)
             // }
         })
+
+        figma.currentPage.selection = createdNodes
+
+        figma.viewport.scrollAndZoomIntoView(createdNodes)
 
         for (const prop in changeLog) {
             console.log(`${changeLog[prop].length} item(s) ${prop}`)

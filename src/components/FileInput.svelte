@@ -4,7 +4,7 @@
     import { GlobalCSS, Button } from 'figma-plugin-ds-svelte'
 
     import { onMount } from 'svelte'
-    import { differenceStore, rootFolder, appVersion } from '../stores.js'
+    import { differenceStore, rootFolder, appVersion, importLog } from '../stores.js'
 
     import { cyrb53, getPathData, getIconSize, parseSVGFromString } from '../svg-helpers'
     import { createEventDispatcher } from 'svelte'
@@ -69,14 +69,24 @@
             const fileContent = await file.text()
             const fileHash = cyrb53(fileContent + fileName)
             const fileDirectory = getPathData(file)
-            const svgSize = getIconSize(parseSVGFromString(fileContent))
+
+            const requestDimensions = getIconSize(parseSVGFromString(fileContent))
+
+            if (requestDimensions.status !== 'success') {
+                $importLog.push({
+                    name: fileName,
+                    hash: fileHash,
+                    status: requestDimensions.status,
+                    message: requestDimensions.message,
+                })
+            }
 
             // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
 
             localArray.push({
                 name: fileName,
                 svg: fileContent,
-                dimensions: svgSize,
+                dimensions: requestDimensions.data,
                 hash: fileHash,
                 folder: fileDirectory,
                 status: '',
@@ -140,7 +150,16 @@
         })
 
         fileList = localArray
+
+        dispatch('readFiles', 'done')
+        console.time('Display file previews: ')
+        document.getElementsByTagName('body')[0].scrollTo(0, 0)
         console.timeEnd('Create diff summary: ')
+
+        for (let i = 0; i < $importLog.length; i++) {
+            const element = $importLog[i]
+            console.warn(element.name, element.message)
+        }
     }
 
     const fileTypes = ['image/svg+xml']
@@ -285,11 +304,6 @@
         // console.log(changedItems);
 
         $differenceStore = changedItems
-
-        //Spaghetti
-        dispatch('readFiles', 'done')
-        console.time('Display file previews: ')
-        document.getElementsByTagName('body')[0].scrollTo(0, 0)
 
         return changedItems
 
