@@ -4,6 +4,7 @@
     import FileInput from './components/FileInput.svelte'
     import FileList from './components/FileList.svelte'
     import { Confetti } from 'svelte-confetti'
+    import ActionCard from './components/ActionCard.svelte'
 
     //import Global CSS from the svelte boilerplate
     //contains Figma color vars, spacing vars, utility classes and more
@@ -170,36 +171,39 @@
             <div class="hero-image">
                 {@html HeroImage}
             </div>
-            <div class="action-card elevation-1 pl-main-action">
-                <div class="action-header flex flx-row">
+            <ActionCard elevation={1}>
+                <div
+                    class="action-header flex flex-row align-items-center"
+                    style="gap: 8px;"
+                    slot="header"
+                >
                     <FileInput
                         bind:fileList
                         on:readFiles={(e) => (readFileState = e.detail)}
                         on:readFiles={() => (filesSubmitted = true)}
                     />
-                    <Button variant="tertiary"
-                        ><a
-                            target="_blank"
-                            href="https://www.kaimagnus.de/articles/building-icon-libraries-with-icon-library-manager"
-                            >How to Use ↗</a
-                        ></Button
+
+                    <a
+                        target="_blank"
+                        href="https://www.kaimagnus.de/articles/building-icon-libraries-with-icon-library-manager"
+                        >Read the blog post ↗</a
                     >
                 </div>
-                <div class="action-body">
+                <div class="action-body" slot="body">
                     <p class="">Create a library by selecting a source folder with .svg files.</p>
                     <p>
                         Learn how to make managing and updating libraries even easier with npm in
                         the introduction blog post.
                     </p>
                 </div>
-            </div>
-            <div class="action-card elevation-1">
-                <div class="action-header">
+            </ActionCard>
+            <ActionCard elevation={1}>
+                <div slot="header">
                     <h2>Quick Start</h2>
                     <p>Try out the plugin with carbon icons:</p>
                 </div>
-                <div class="action-body">
-                    <ol>
+                <div slot="body">
+                    <ol style="margin: unset;">
                         <li>
                             <a
                                 target="_blank"
@@ -229,12 +233,13 @@
                         > for more information.
                     </p>
                 </div>
-            </div>
-            <div class="action-card elevation-1 pl-main-action">
-                <div class="action-header">
+            </ActionCard>
+
+            <ActionCard>
+                <div slot="header">
                     <h2>Feedback</h2>
                 </div>
-                <div class="action-body">
+                <div slot="body">
                     <p>I'd like to learn more about the users of this plugin.</p>
                     <p>
                         Help me by filling out this short <a
@@ -244,7 +249,7 @@
                         > to tell me more about your experience, thanks!
                     </p>
                 </div>
-            </div>
+            </ActionCard>
         </div>
     {:else if fileListLoaded && fileList.length > 0}
         <!-- --------------------------- -->
@@ -278,10 +283,8 @@
                                 {:else}
                                     <!-- SVG FILES IMPORTED AND NO LIBRARY IN FILE-->
                                     <p>
-                                        <span>
-                                            Continue to create a component library with {_differences
-                                                .added.length || 'No'} new icons here.
-                                        </span>
+                                        Continue to create a component library with {_differences
+                                            .added.length || 'No'} new icons here.
                                     </p>
                                 {/if}
                             </div>
@@ -307,7 +310,7 @@
                                 on:readFiles={(e) => (readFileState = e.detail)}
                             />
                             <Label class="">
-                                Select a folder containing .svg files to update the library
+                                Select a folder containing .svg files to update the library.
                             </Label>
                         </div>
                     {/if}
@@ -322,7 +325,7 @@
                             y={[-1.25, -0.25]}
                             cone
                             duration={3000}
-                            xSpread="0.2"
+                            xSpread="0.3"
                         />
                         <Confetti
                             delay={[100, 150]}
@@ -350,14 +353,10 @@
                         <Label>You can now publish the changes in your team library.</Label>
                     </div>
                 {/if}
-                <FileList {fileList} />
-                {#if createLibraryState === 'done' || (createLibraryState !== 'done' && _differences == null)}
+                {#if createLibraryState === 'done'}
                     <div class="placeholder footer">
-                        <div class="action-card elevation-1 pl-main-action">
-                            <div class="action-header">
-                                <!-- <h2>I'm interested in your feedback</h2> -->
-                            </div>
-                            <div class="action-body">
+                        <ActionCard>
+                            <div slot="body">
                                 <p>
                                     I'm interested in your feedback. If you have a minute, help me
                                     by filling out this <a
@@ -367,9 +366,26 @@
                                     >, thank you!
                                 </p>
                             </div>
-                        </div>
+                        </ActionCard>
                     </div>
                 {/if}
+
+                {#if createLibraryState !== 'done' && _differences == null}
+                    <div class="placeholder footer">
+                        <ActionCard>
+                            <div slot="body">
+                                <p>
+                                    Seeing this for the first time? Read the blog post <a
+                                        target="_blank"
+                                        href="https://www.kaimagnus.de/articles/building-icon-libraries-with-icon-library-manager"
+                                        >Maintaining Icon Libraries in Figma with ILM</a
+                                    > to learn more about managing icon libraries with this plugin.
+                                </p>
+                            </div>
+                        </ActionCard>
+                    </div>
+                {/if}
+                <FileList {fileList} />
                 {#if createLibraryState !== 'done' && _differences == null && tutorialLoaded}
                     <div class="section--tutorial">
                         <Tutorial {viewedTutorials} />
@@ -386,6 +402,11 @@
 <style>
     a {
         color: var(--figma-color-text-brand);
+    }
+
+    :global(.hero-image svg) {
+        width: 100%;
+        height: auto;
     }
 
     .read-file-overlay {
@@ -442,16 +463,6 @@
         color: var(--figma-color-text);
     }
 
-    .card-wrapper {
-        padding-inline: 8px;
-        margin-top: 8px;
-    }
-    .inline-tutorial {
-        overflow: hidden;
-        z-index: 1;
-        margin: 0;
-    }
-
     .update-library-select {
         position: sticky;
         top: 0;
@@ -473,72 +484,15 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
-        position: relative;
+
         padding: 0 0.75rem 0.75rem 0.75rem;
         gap: 0.75rem;
     }
 
     .placeholder.footer {
         margin-top: 0.75rem;
-        position: sticky;
-        bottom: 0;
-    }
-
-    .action-card {
-        border-radius: 8px;
-        position: relative;
-        font-size: var(--font-size-xsmall);
-        font-weight: var(--font-weight-normal);
-        color: var(--figma-color-text);
-        line-height: var(--font-line-height) !important;
-        padding: 0.75rem;
-        width: 100%;
-    }
-
-    .elevation-0 {
-        background-color: var(--figma-color-bg);
-        box-shadow: none;
-    }
-
-    .elevation-1 {
-        border: 1px solid var(--figma-color-border);
-        background-color: var(--figma-color-bg-secondary);
-        box-shadow: 0px 4px 8px #00000011;
-    }
-
-    .inline-tutorial:hover {
-        background-color: color-mix(in srgb, transparent, var(--figma-color-text) 10%);
-        border-color: color-mix(in srgb, transparent, var(--figma-color-text) 20%);
-    }
-
-    /* .inline-tutorial:hover p:first-of-type {
-        text-decoration: underline;
-    } */
-
-    .action-header {
-        gap: 1rem;
-        align-items: center;
-    }
-
-    .action-card p {
-        margin: 0;
-    }
-
-    .action-body p:not(:only-child) {
-        margin-top: 8px;
-    }
-
-    .action-card ol {
-        margin-bottom: 0;
-        padding-left: 1rem;
-    }
-
-    .action-body p:not(:last-of-type) {
-        margin-bottom: 8px;
-    }
-
-    .font-large {
-        font-size: 20px;
+        /* position: sticky;
+        bottom: 0; */
     }
 
     h1,
@@ -550,8 +504,6 @@
     h2 {
         font-size: var(--font-size-large);
         font-weight: var(--font-weight-bold);
-
-        margin-block-end: 0.5em;
     }
 
     footer {

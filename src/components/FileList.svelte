@@ -26,7 +26,9 @@
     }
 
     onMount(() => {
-        console.timeEnd('Display file previews: ')
+        if (!!fileList) {
+            console.timeEnd('Display file previews: ')
+        }
     })
 </script>
 
