@@ -70,42 +70,30 @@
             const fileHash = cyrb53(fileContent + fileName)
             const fileDirectory = getPathData(file)
 
-            const requestDimensions = getIconSize(parseSVGFromString(fileContent))
-
-            if (requestDimensions.status !== 'success') {
+            try {
+                const dimensions = getIconSize(parseSVGFromString(fileContent))
+                localArray.push({
+                    name: fileName,
+                    svg: fileContent,
+                    dimensions: dimensions,
+                    hash: fileHash,
+                    folder: fileDirectory,
+                    status: '',
+                    createdVersion: $appVersion,
+                })
+            } catch (error) {
                 $importLog.push({
                     name: fileName,
                     hash: fileHash,
-                    status: requestDimensions.status,
-                    message: requestDimensions.message,
+                    status: 'error',
+                    message: error.message,
                 })
+                console.error(`Error processing ${fileName}: ${error.message}`)
+                continue
             }
-
-            // console.log(fileName + ' ' + svgSize + ' ' + fileDirectory);
-
-            localArray.push({
-                name: fileName,
-                svg: fileContent,
-                dimensions: requestDimensions.data,
-                hash: fileHash,
-                folder: fileDirectory,
-                status: '',
-                createdVersion: $appVersion,
-            })
         }
 
         console.timeEnd('Files loaded in:     ')
-
-        // console.log(localArray)
-        // This is a hack
-        // For some reason, files are missing sometimes after the local array is built
-        // Since this is rare, simply restarting the file reading process fixes this issue without problems (just takes a little bit longer when that happens)
-        // Wating to see if it still happens with the for loop above. The previos forEach and .then construction looked a bit ugly anyways
-        if (localArray.length < cleanedFiles.length) {
-            console.warn('Files are missing from array! Retrying…')
-            updateFileList(files)
-            throw e
-        }
 
         // console.log('' + localArray.length + ' files to check for differences.')
 
@@ -155,6 +143,8 @@
         console.time('Display file previews: ')
         document.getElementsByTagName('body')[0].scrollTo(0, 0)
         console.timeEnd('Create diff summary: ')
+
+        if ($importLog.length > 0) console.log('Errors during import:')
 
         for (let i = 0; i < $importLog.length; i++) {
             const element = $importLog[i]

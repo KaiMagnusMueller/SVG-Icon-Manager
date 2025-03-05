@@ -4,7 +4,19 @@
     "api": "1.0.0",
     "main": "code.js",
     "ui": "index.html",
-    "editorType": ["figma"],
-    "networkAccess": { "allowedDomains": ["none"] },
-    "relaunchButtons": [{ "command": "update", "name": "Icon Library Manager" }]
+    "editorType": [
+        "figma"
+    ],
+    "networkAccess": {
+        "allowedDomains": [
+            "none"
+        ]
+    },
+    "documentAccess": "dynamic-page",
+    "relaunchButtons": [
+        {
+            "command": "update",
+            "name": "Icon Library Manager"
+        }
+    ]
 }

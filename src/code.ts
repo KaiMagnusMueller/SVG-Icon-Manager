@@ -58,7 +58,7 @@ getTutorials()
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
-figma.ui.onmessage = (msg) => {
+figma.ui.onmessage = async (msg) => {
     // One way of distinguishing between different types of messages sent from
     // your HTML page is to use an object with a "type" property like this.
 
@@ -101,7 +101,7 @@ figma.ui.onmessage = (msg) => {
         // Insert icons backwards so the layer list is sorted A-Z in the end (the first inserted icon is at the bottom)
         const elementsToInsert = msg.doc.reverse()
 
-        elementsToInsert.forEach((element, i) => {
+        elementsToInsert.forEach(async (element, i) => {
             let currentHash = element.hash
             // let foundIndex = existingIcons.findIndex((e) => e.hash == currentHash)
             // console.log(`Current index ${i} Found same Icon at ${foundIndex}`);
@@ -179,7 +179,7 @@ figma.ui.onmessage = (msg) => {
             } else {
                 //if an icon wasn't added, it is either unchanged, changed or deleted
 
-                let existingNode = figma.getNodeById(element.id)
+                let existingNode = (await figma.getNodeByIdAsync(element.id)) as ComponentNode
 
                 if (existingNode) {
                     let coords = getCoords(i, elementsToInsert.length, startingPos, columnCount)
@@ -199,7 +199,7 @@ figma.ui.onmessage = (msg) => {
             if (element.status === 'changed') {
                 //TODO: Mark node that has changed its size to warn the user
 
-                let changedNode = figma.getNodeById(element.id)
+                let changedNode = (await figma.getNodeByIdAsync(element.id)) as ComponentNode
 
                 const svg = figma.createNodeFromSvg(element.svg)
                 svg.name = 'svg'
@@ -221,8 +221,13 @@ figma.ui.onmessage = (msg) => {
             if (element.status === 'deleted') {
                 // console.log('mark node as deleted')
 
-                let changedNode = figma.getNodeById(element.id)
+                let changedNode = await figma.getNodeByIdAsync(element.id)
                 const pluginData = element
+
+                if (!changedNode) {
+                    return
+                }
+
                 changedNode.setPluginData('importedIcon', JSON.stringify(pluginData))
             }
 
@@ -241,7 +246,7 @@ figma.ui.onmessage = (msg) => {
         }
 
         // Set relaunch button if it is not already present
-        const documentNode = figma.getNodeById('0:0')
+        const documentNode = await figma.getNodeByIdAsync('0:0')
         if (!Object.keys(documentNode.getRelaunchData()).includes('update')) {
             documentNode.setRelaunchData({
                 update: 'Import SVGs to update icon components in this file',

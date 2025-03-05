@@ -9,20 +9,22 @@ export function parseSVGFromString(_string) {
 
 //get icon size from svg doc
 export function getIconSize(_doc) {
+    if (_doc === null) {
+        throw new Error("Document is null.")
+    }
+
     if (_doc?.viewBox === undefined) {
-        return {
-            status: "warning",
-            message: "viewBox is undefined, falling back to width and height attributes.",
-            data:
-                [
-                    _doc.getAttribute('width'),
-                    _doc.getAttribute('height'),
-                ]
+        const width = _doc.getAttribute('width')
+        const height = _doc.getAttribute('height')
+
+        if (!width || !height) {
+            throw new Error("No viewBox, width, or height attributes found.")
         }
+        return [width, height]
     }
 
     const dimensions = _doc.viewBox.baseVal
-    return { status: "success", message: "", data: [dimensions.width, dimensions.height] }
+    return [dimensions.width, dimensions.height]
 }
 
 let _activePreset

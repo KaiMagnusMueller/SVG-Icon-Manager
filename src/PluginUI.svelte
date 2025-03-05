@@ -288,9 +288,11 @@
                             {#if $importLog.length > 0}
                                 <div class="flex align-items-center">
                                     <p>
-                                        There were {$importLog.length} issues while reading files. This
-                                        can be caused by corrupted SVG files or missing attributes. Please
-                                        check the console for more information.
+                                        There {$importLog.length <= 1 ? 'was' : 'were'}
+                                        {$importLog.length}
+                                        {$importLog.length <= 1 ? 'issue' : 'issues'} while reading files.
+                                        This can be caused by corrupted SVG files or missing attributes.
+                                        Please check the console for more information.
                                     </p>
                                 </div>
                             {/if}
